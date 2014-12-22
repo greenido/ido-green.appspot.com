@@ -1,4 +1,5 @@
-# [ido-green.appspot.com](http://Ido-green.appspot.com/) - My projects and demos site
+## [ido-green.appspot.com](http://Ido-green.appspot.com/)
+My projects and demos site
 
 ## Tech Stack
 * Bootstrap
