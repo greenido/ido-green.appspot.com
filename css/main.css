@@ -294,7 +294,23 @@ header .intro-text .intro-heading {
     line-height: 50px;
 }
 
+@media(max-width:400px) {
+    header {
+        text-align: center;
+        color: #fff;
+        background-attachment: scroll;
+        background-image: url(../img/header-bg.jpg);
+        background-position: center center;
+        background-repeat: none;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        background-size: cover;
+        -o-background-size: cover;
+    }
+}
+
 @media(min-width:768px) {
+
     header .intro-text {
         padding-top: 300px;
         padding-bottom: 200px;
