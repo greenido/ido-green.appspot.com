@@ -28,13 +28,13 @@ module.exports = function(grunt) {
         }
       }
     },
-    imagemin: {                          // Task
+    imagemin: {         // Task
       dynamic: {                         
         files: [{
-          expand: true,                  // Enable dynamic expansion
-          cwd: 'img/',                   // Src matches are relative to this path
-          src: ['**/*.{png,jpg,jpeg,gif}'],   // Actual patterns to match
-          dest: 'dist/img/'                  // Destination path prefix
+          expand: true, // Enable dynamic expansion
+          cwd: 'img/',  // Src matches are relative to this path
+          src: ['**/*.{png,jpg,jpeg,gif}'], // Actual patterns to match
+          dest: 'dist/img/'                 // Destination path prefix
         }]
       }
     }
