@@ -308,6 +308,9 @@ header .intro-text .intro-heading {
         background-size: cover;
         -o-background-size: cover;
     }
+    .btn-close {
+        margin-top: 0.2em;
+    }
 }
 
 @media(min-width:768px) {
