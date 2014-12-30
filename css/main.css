@@ -73,6 +73,7 @@ h6 {
     font-weight: 700;
     color: #fff;
     background-color: #fed136;
+    margin-top: 0.3em;
 }
 
 .btn-primary:hover,
@@ -893,4 +894,8 @@ ul.nav.navbar-nav.navbar-right {
 #plusone {
     position: relative;
     top: 0.25em;
+}
+
+.btn-close {
+    background-color: rgba(142, 142, 125, 0.78);
 }
