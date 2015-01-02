@@ -28,6 +28,17 @@ module.exports = function(grunt) {
         }
       }
     },
+    htmlmin: {                                     // Task
+      dist: {                                      // Target
+        options: {                                 // Target options
+          removeComments: true,
+          collapseWhitespace: true
+        },
+        files: {                                   // Dictionary of files
+          'dist/index.html': 'index.html'    // 'destination': 'source'
+        }
+      }
+    },
     imagemin: {         // Task
       dynamic: {                         
         files: [{
@@ -42,13 +53,19 @@ module.exports = function(grunt) {
 
   // ToDo: Load the plugin that provides the "uglify" task on: HTML, JS, CSS
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-processhtml');
+
   grunt.loadNpmTasks('grunt-contrib-imagemin');
   grunt.loadNpmTasks('grunt-uncss');
-  grunt.loadNpmTasks('grunt-processhtml');
+
+  // Minify our HTML
+  grunt.loadNpmTasks('grunt-contrib-htmlmin');
 
   // Default task(s). 
   // TODO: add uglify.
-  grunt.registerTask('default', ['imagemin', 'uncss', 'processhtml']);
+  grunt.registerTask('default', ['imagemin', 'htmlmin']); // TODO: , 'uncss', 'processhtml']);
+
+  grunt.registerTask('html', ['htmlmin']);
 
 };
 
