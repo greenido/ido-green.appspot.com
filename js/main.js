@@ -1,3 +1,8 @@
+// Simple scrolling in the page to the sections
+//
+// @Author: Ido Green | @greenido
+// @date: Jan 2015
+//
 
 // jQuery for page scrolling feature - requires jQuery Easing plugin
 $(function() {

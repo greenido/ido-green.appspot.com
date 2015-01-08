@@ -11,7 +11,7 @@
     "grunt-processhtml": "^0.3.3",
     "grunt-uncss": "^0.3.8"
   },
-  "description": "ido-green.appspot.com - my projects site",
+  "description": "ido-green.appspot.com - Ido's projects",
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,7 +27,7 @@
     "Demos"
   ],
   "author": "Ido Green",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/greenido/ido-green.appspot.com/issues"
   },
