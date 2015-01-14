@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 
-  // Project configuration.
+  // Project init configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     uglify: {
@@ -28,13 +28,13 @@ module.exports = function(grunt) {
         }
       }
     },
-    htmlmin: {                                     // Task
-      dist: {                                      // Target
-        options: {                                 // Target options
+    htmlmin: {                   // Task
+      dist: {                    // Target
+        options: {               // Target options
           removeComments: true,
           collapseWhitespace: true
         },
-        files: {                                   // Dictionary of files
+        files: {                 // Dictionary of files
           'dist/index.html': 'index.html'    // 'destination': 'source'
         }
       }
