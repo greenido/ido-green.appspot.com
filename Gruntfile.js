@@ -34,8 +34,8 @@ module.exports = function(grunt) {
           removeComments: true,
           collapseWhitespace: true
         },
-        files: {                 // Dictionary of files
-          'dist/index.html': 'index.html'    // 'destination': 'source'
+        files: {                           // Dictionary of files
+          'dist/index.html': 'index.html'  // 'destination': 'source'
         }
       }
     },
@@ -64,7 +64,6 @@ module.exports = function(grunt) {
   // Default task(s). 
   // TODO: add uglify.
   grunt.registerTask('default', ['imagemin', 'htmlmin']); // TODO: , 'uncss', 'processhtml']);
-
   grunt.registerTask('html', ['htmlmin']);
 
 };
