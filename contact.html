@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+        content="Ido Green (Developer Advocate At Google Chrome) projets, demos and presentations">
+    <meta name="author" content="Ido Green | greenido.wordpress.com | @greenido">
+    <title>Ido Green - Chrome, HTML5, Cloud and Projects</title>
+
+    <!-- Stylesheets we would like cleaned -->
+    <!-- build:css css/tidy.css -->
+    <!-- just here to make sure we reference css/tidy.css -->
+    <link href="css/bootstrap3.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/main.css" rel="stylesheet">
+    <!-- /build -->
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Kaushan+Script' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700' rel='stylesheet' type='text/css'>
+    
+    <!-- Chrome on Android theme -->
+    <meta name="theme-color" content="#33076B">
+    <link rel="icon" sizes="192x192" href="img/pre-logo.png">
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body id="page-top" class="index">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <!-- Brand -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top">Ido's talks and demos</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#talks">Talks</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#portfolio">Code</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#about">About</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#book">Book</a>
+                    </li>
+                    <li>
+                        <a href="http://twitter.com/greenido" target="_blank">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse --> </div>
+        </nav>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="intro-text">
+                <div class="intro-lead-in"></div>
+                <div class="intro-heading"></div>
+                
+                <div id="wufoo-z1d29u00eu2bag" style="background: rgba(184, 184, 210, 0.7); padding-top: 2em; padding-left: 1em;">
+                Fill out my <a href="https://greenido.wufoo.com/forms/z1d29u00eu2bag">online form</a>.
+                </div>
+                <div id="wuf-adv" style="font-family:inherit;font-size: small;color:#a7a7a7;text-align:center;display:block;"></div>
+                <script type="text/javascript">var z1d29u00eu2bag;(function(d, t) {
+                var s = d.createElement(t), options = {
+                'userName':'greenido',
+                'formHash':'z1d29u00eu2bag',
+                'autoResize':true,
+                'height':'437',
+                'async':true,
+                'host':'wufoo.com',
+                'header':'show',
+                'ssl':true};
+                s.src = ('https:' == d.location.protocol ? 'https://' : 'http://') + 'www.wufoo.com/scripts/embed/form.js';
+                s.onload = s.onreadystatechange = function() {
+                var rs = this.readyState; if (rs) if (rs != 'complete') if (rs != 'loaded') return;
+                try { z1d29u00eu2bag = new WufooForm();z1d29u00eu2bag.initialize(options);z1d29u00eu2bag.display(); } catch (e) {}};
+                var scr = d.getElementsByTagName(t)[0], par = scr.parentNode; par.insertBefore(s, scr);
+                })(document, 'script');</script>
+
+            </div>
+        </div>
+    </header>
+
+
+    <!-- The footer of the party -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="copyright">Copyright &copy; <a href="https://ido-green.appspot.com/">Ido-Green.appspot.com 2015</a></span>
+                </div>
+                <div class="col-md-4">
+                    <ul class="list-inline social-buttons">
+                        <li>
+                            <a href="https://twitter.com/greenido" target="_blank">
+                                <i class="fa fa-twitter"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://github.com/greenido" target="_blank">
+                                <i class="fa fa-git" target="_blank"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.linkedin.com/in/greenido" target="_blank">
+                                <i class="fa fa-linkedin"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <div id="plusone">
+                                <g:plusone></g:plusone>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal 1 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal1" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <h2>Views 2 Remember</h2>
+                            <img src="img/portfolio/views2rem.png" class="img-responsive" alt="views to remember - mobile web app"/>
+                            <a href="https://views2remember.appspot.com" target="_blank" 
+                            class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal2" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <h2>Alerts IL</h2>
+                            <img src="img/portfolio/alerts-il.png" class="img-responsive"
+                            alt="Alerts (Tzeva Adom) and news from Israel - mobile web app"/>
+                            <a href="https://alerts-il.appspot.com" target="_blank" 
+                        class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal3" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <!-- Project Details Go Here -->
+                            <h2>Time Tracker</h2>
+                            <img src="img/portfolio/time-tracker.png" class="img-responsive" alt="time tracker web app - both in hebrew and english"/>
+
+                            <a href="http://ido-green.appspot.com/html5timetracker/index.html" target="_blank" 
+                        class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>Close 
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal4" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <!-- Project Details Go Here -->
+                            <h2>WebRTC Example</h2>
+                            <img src="img/portfolio/webrtc-ex.png" class="img-responsive" alt="webrtc example"/>
+
+                            <a href="http://ido-green.appspot.com/getUserMedia-hello-world.html" target="_blank" 
+                        class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>Close 
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal5" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <!-- Project Details Go Here -->
+                            <h2>Coder Example</h2>
+                            <img src="img/portfolio/coder-ex.png" class="img-responsive" alt="podcasts for developers">
+                            <a href="http://ido-green.appspot.com/t-surf-ex.html" target="_blank" class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>Close 
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 6 -->
+    <div class="portfolio-modal modal fade" id="portfolioModal6" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl"></div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-4">
+                        <div class="modal-body">
+                            <h2>Podcasts Player For Developers</h2>
+                            <img src="img/portfolio/pod4dev-ex.png" class="img-responsive" alt="podcasts for developers on topics that will improve you">
+                            <a href="http://pod4dev.appspot.com" target="_blank" class="btn btn-xl" role="button">
+                                <i class="fa fa-mail-forward"></i>Open
+                            </a>
+                            <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
+                                <i class="fa fa-times"></i>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="js/jquery-1-11.js"></script>
+
+    <!-- Bootstrap Core -->
+    <script src="js/bootstrap3.min.js"></script>
+
+    <!-- Plugins JavaScript -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+    <script src="js/classie.js"></script>
+    <script src="js/cbpAnimatedHeader.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="js/main.js"></script>
+    <script src="http://apis.google.com/js/plusone.js"></script>
+
+    <!-- GA -->
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-27750723-1', 'auto');
+        ga('require', 'displayfeatures');
+        ga('send', 'pageview');
+    </script>
+
+</body>
+<!-- v2.0 -->
+</html>
