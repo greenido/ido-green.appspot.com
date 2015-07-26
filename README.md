@@ -14,3 +14,6 @@ Have a bug or an issue with this theme? [Open a new issue](https://github.com/gr
   * 'Playroom' to the examples from [RoadShow page](ido-green.appspot.com/RoadShow.html)
   * ServiceWorker - Use it to improve performance and to control the fetching of new / fresh content (e.g. blogs posts)
 
+
+[![Analytics](https://ga-beacon.appspot.com/UA-65622529-1/ido-green.appspot.com/main)](https://github.com/igrigorik/ga-beacon)
+
