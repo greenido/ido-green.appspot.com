@@ -4,3 +4,5 @@ copyFiles.sh
 node_modules/
 
 dist/
+
+*.jar
