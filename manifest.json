@@ -1,0 +1,24 @@
+{
+  "short_name": "Ido's Talks",
+  "name": "Ido Green Talks, Demos and projects",
+  "icons": [
+    {
+      "src": "d4_96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "d4_144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "d4_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "landscape"
+}
