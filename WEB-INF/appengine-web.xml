@@ -23,9 +23,10 @@
     <include path="/**.js"   expiration="10d" />
     <include path="/**.css"  expiration="10d" />
     <include path="/**.html" expiration="10d" />
+    <include path="/**.json" expiration="10d" />
     <include path="/robots.txt" />
     <include path="/404.html" expiration="30d" />
     <include path="/clock.html" expiration="30d" />
 </static-files>
-	
+
 </appengine-web-app>
