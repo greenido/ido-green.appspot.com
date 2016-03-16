@@ -6,3 +6,7 @@ node_modules/
 dist/
 
 *.jar
+
+Web-Workers-Examples/
+
+israel-air/

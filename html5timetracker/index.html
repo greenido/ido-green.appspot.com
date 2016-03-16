@@ -1,0 +1,88 @@
+<html lang="he">
+<head>
+	<meta charset="utf-8" />
+	<title>Time Tracker To Asal</title>
+	<link rel="stylesheet" href="style.css" />
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript" src="jquery.countdown.min.js"></script>
+	<!-- Todo: use the min.js version -->
+	<script type="text/javascript" src="site.js"></script>
+</head>
+<body>
+	<div id="langs">
+		<a href="index.html" >
+			<img src="imgs/hebrew-flag.png" alt="hebrew icon"></a>
+		<a href="index-en.html" >
+			<img src="imgs/en-flag.png" alt="english icon"></a>
+	</div>
+	<section id="settings">
+		<div class="overlay"></div>
+		<div class="content">
+			<form action="" id="cycle-form" class="settings-form">
+				<label for="cycle">זמן המחזור עבודה</label>
+				<input type="text" id="cycle" placeholder="30" />
+				<input type="submit" value="Save"></form>
+			<form action="" id="next-form" class="settings-form">
+				<label for="nextCycle">זמן מחזור משני</label>
+				<input type="text" id="nextCycle" placeholder="30" />
+				<input type="submit" value="Save"></form>
+		</div>
+	</section>
+	<section id="welcome">
+		<h1>מכשיר קטן למעקב זמן</h1>
+		<p>רק כמה לחיצות ויש לך תיעוד יומי על מה הושקע הזמן</p>
+		<a href="" class="btn-start">יאללה נתחיל</a>
+		<a href="" class="settings set-cycle">הגדרות</a>
+		<div id="kids">
+			<img src="https://farm4.staticflickr.com/3797/13819192673_03feae3f8e_c.jpg" width="800" height="600" alt="The boys!"></div>
+	</section>
+
+	<section id="countdown">
+		<div id="timer">
+			<span></span>
+		</div>
+		<a href="" id="end">זהו סיימתי</a>
+		<a href="" id="cancel">ביטול</a>
+	</section>
+
+	<section id="list">
+		<h5>המשימות</h5>
+		<ul id="done"></ul>
+		<div id="actions">
+			<a href="" id="reset">ניקוי התיעוד</a>
+			<span>
+				את בטוחה ?
+				<a href="" class="confirm">כן</a>
+				<a href="" class="cancel">מה פתאום</a>
+			</span>
+			<br></div>
+		<button href="" class="btn-download" id="download">הורד את משימות</button>
+		<a href="" class="settings set-cycle">הגדרות</a>
+	</section>
+
+	<section id="alert">
+		<form action="" id="logActivity">
+			<label for="what">&#63; על מה עבדת</label>
+			<input type="text" id="what" placeholder="תיאור מלא ומפורט" />
+			<br>
+			<label>
+				<input type="checkbox" id="new" checked />
+				&#63; עוד משימה
+			</label>
+			<input type="submit" id="submit" value="שמור"></form>
+		<a href="" id="void">ביטול</a>
+		<a href="" class="settings set-next">הגדרות</a>
+	</section>
+
+ <!-- GA with the new tags for demographics -->
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-27750723-1', 'auto');
+        ga('require', 'displayfeatures');
+        ga('send', 'pageview');
+    </script>
+</body>
+</html>
