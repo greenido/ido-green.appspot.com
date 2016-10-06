@@ -1,0 +1,465 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>GDD Countdown</title>
+<style type="text/css">
+body {
+  padding: 0px;
+  background: #ffffff;
+  background-repeat: repeat-x;
+  color: #808080;
+  font-family: Arial, Sans-Serif;
+  font-size: 16pt;
+}
+
+div#setupdiv {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 50px;
+  width: 300px;
+}
+
+input, button {
+  font-size: 18pt;
+}
+
+div#centerdiv {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1000px;
+}
+
+canvas#mycanvas {
+  width: 1000px;
+  height: 700px;
+  background: #808080;
+}
+
+select {
+  font-size: 16pt;
+  background: #f0f0f0;
+}
+
+</style>
+<script type="text/javascript">
+
+// Themes (GDD cities)
+CITIES = {
+  SAO: { bgColor: "#082457", bgImage: "sao.png",
+         minuteColor: "#009c69",
+         secondColor: "#86c409",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+  BUE: { bgColor: "#001b4f", bgImage: "bue.png",
+         minuteColor: "#86c409",
+         secondColor: "#6cb0ad",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+  MSK: { bgColor: "#001b4f", bgImage: "msk.png",
+         minuteColor: "#e29300",
+         secondColor: "#ec442f",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+  PRG: { bgColor: "#001b4f", bgImage: "prg.png",
+         minuteColor: "#f38243",
+         secondColor: "#67a4c7",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+  TOK: { bgColor: "#85b4d0", bgImage: "tok.png",
+         minuteColor: "#732736",
+         secondColor: "#cd5d54",
+         binaryOneColor: "#404060",
+         binaryZeroColor: "#a4b0b9" },
+  SYD: { bgColor: "#86b6d2", bgImage: "syd.png",
+         minuteColor: "#ba5d2f",
+         secondColor: "#72391d",
+         binaryOneColor: "#404060",
+         binaryZeroColor: "#a4b0b9" },
+  TLV: { bgColor: "#001b4f", bgImage: "prg.png",
+         minuteColor: "#8cc63f",
+         secondColor: "#e4e7b8",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+  BER: { bgColor: "#001b4f", bgImage: "ber.png",
+         minuteColor: "#fbbe1f",
+         secondColor: "#6998a2",
+         binaryOneColor: "#a4b0b9",
+         binaryZeroColor: "#404060" },
+};
+
+// Canvas size
+var CANVAS_WIDTH = 800;
+var CANVAS_HEIGHT = 600;
+
+// Fragment animation modes
+var FRAG_NONE = 0;
+var FRAG_APPEAR = 1;
+var FRAG_MOVE = 2;
+var FRAG_FADE = 3;
+
+// Fragment/slot shapes
+var SHAPE_UPPER = 0;
+var SHAPE_LOWER = 1;
+
+// A slot is a position where a fragment can exist
+function Slot(col, row, shape) {
+  this.col = col
+  this.row = row;
+  this.shape = shape;
+}
+
+function Fragment(parentScreen, originSlot) {
+  this.animMode = FRAG_APPEAR;
+  this.screen = parentScreen;
+  this.originSlot = originSlot;
+  this.isDead = false;
+}
+
+Fragment.prototype.moveTo = function(targetSlot) {
+  this.animMode = FRAG_MOVE;
+  this.targetSlot = targetSlot;
+}
+
+Fragment.prototype.fadeAway = function() {
+  this.animMode = FRAG_FADE;
+}
+
+Fragment.prototype.commit = function() {
+  if (this.animMode == FRAG_FADE)
+    this.isDead = true;
+  else if (this.animMode == FRAG_MOVE) {
+    this.originSlot = this.targetSlot;
+    this.animMode = FRAG_NONE;
+  }
+  else if (this.animMode == FRAG_APPEAR) {
+    this.animMode = FRAG_NONE;
+  }
+}
+
+function tween(start, end, factor) {
+  if (factor < 0) return start;
+  if (factor > 1) return end;
+  return start + (end - start) * factor;
+}
+
+Fragment.prototype.paint = function(ctx, x0, y0, tweenFactor) {
+  var x, y;
+  var targetSlot;
+  var fragSize = this.screen.fragSize;
+  var cornerTween;
+
+  if (this.animMode == FRAG_FADE) {
+    x = x0 + this.originSlot.col * fragSize;
+    y = y0 + tween(this.originSlot.row * fragSize,
+                   1.5*this.screen.rows * fragSize, tweenFactor);
+    cornerTween = tween(this.originSlot.shape, 0.5, tweenFactor);
+  }
+  else if (this.animMode == FRAG_MOVE) {
+    x = x0 + tween(this.originSlot.col * fragSize,
+                   this.targetSlot.col * fragSize, tweenFactor);
+    y = y0 + tween(this.originSlot.row * fragSize,
+                   this.targetSlot.row * fragSize, tweenFactor);
+    cornerTween = tween(this.originSlot.shape, this.targetSlot.shape, 
+                        tweenFactor);
+  }
+  else {
+    x = x0 + this.originSlot.col * fragSize;
+    y = y0 + this.originSlot.row * fragSize;
+    cornerTween = tween(0.5, this.originSlot.shape, tweenFactor);
+  }
+
+  var PADDING = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + fragSize - PADDING, y + PADDING);
+  ctx.lineTo(x + PADDING + cornerTween * (fragSize-2*PADDING), y + PADDING + cornerTween * (fragSize-2*PADDING));
+  ctx.lineTo(x + PADDING, y + fragSize - PADDING);
+  ctx.fill();
+}
+
+
+function Screen(cols, rows, x0, y0, fragSize) {
+  this.fragments = [];
+  this.rows = rows;
+  this.cols = cols;
+  this.x0 = x0;
+  this.y0 = y0;
+  this.fragSize = fragSize;
+  this.fillStyle = "#000000";
+  this.noFragReuse = false;
+}
+
+
+Screen.prototype.paint = function(ctx, tweenFactor) {
+  var i, f;
+
+  ctx.fillStyle = this.fillStyle;
+
+  for (i = 0; i < this.fragments.length; i++) {
+    var f = this.fragments[i];
+    f.paint(ctx, this.x0, this.y0, tweenFactor);
+  }
+}
+
+Screen.prototype.setTargetSet = function(targetSet) {
+  var i, f;
+  
+  // set all fragments to unassigned
+  for (i = 0; i < this.fragments.length; i++) {
+    var f = this.fragments[i];
+    f.assigned = false;
+  }
+
+  // bind each target set slot to the nearest fragment
+  for (i = 0; i < targetSet.length; i++) {
+    var thisSlot = targetSet[i];
+
+    // find nearest idle fragment
+    var f = this._getNearestIdleFragment(thisSlot);
+    if (!f)
+      this.fragments.push(f = new Fragment(this, thisSlot));
+    else
+      f.moveTo(thisSlot);
+
+    f.assigned = true;
+  }
+
+  // any unassigned fragments should fade away
+  for (i = 0; i < this.fragments.length; i++) {
+    var f = this.fragments[i];
+    if (!f.assigned) 
+      f.fadeAway();
+  }
+}
+
+Screen.prototype.commit = function() {
+  for (i = 0; i < this.fragments.length; i++) {
+    var f = this.fragments[i];
+    f.commit();
+  }
+
+  // remove dead fragments
+  for (i = this.fragments.length - 1; i >= 0; i--) {
+    if (this.fragments[i].isDead) {
+      lastf = this.fragments.pop();
+      if (i < this.fragments.length)
+        this.fragments[i] = lastf;
+    }
+  }
+}
+
+Screen.prototype._getNearestIdleFragment = function(slot) {
+  var i;
+  var nearest = -1;
+  var nearestDist;
+
+  for (i = 0; i < this.fragments.length; i++) {
+    var f = this.fragments[i];
+    if (f.animMode != FRAG_NONE) continue;
+    var thisDist = (Math.abs(f.originSlot.row - slot.row) + 
+                    Math.abs(f.originSlot.col - slot.col) + 
+                    Math.abs(f.originSlot.shape - slot.shape)*2000);
+    if (nearest < 0 || thisDist < nearestDist) {
+      if (this.noFragReuse && thisDist > 0) continue;
+      nearest = i;
+      nearestDist = thisDist;
+    }
+  }
+
+  return nearest >= 0 ? this.fragments[nearest] : null;
+}
+
+
+
+var BASE_X = 40;
+var BASE_Y = 100;
+var FRAG_SIZE = 40;
+var BINARY_FRAG_SIZE = 20;
+var BINARY_DIGITS = 14;
+var minutesScreen = new Screen(7, 5, BASE_X, BASE_Y, FRAG_SIZE);
+var colonScreen = new Screen(1, 5, BASE_X + 9 * FRAG_SIZE, BASE_Y, FRAG_SIZE);
+var secondsScreen = new Screen(7, 5, BASE_X + 11 * FRAG_SIZE, 
+                                     BASE_Y, FRAG_SIZE);
+var binaryScreen = new Screen(BINARY_DIGITS, 1, BASE_X + 440, 
+                              5, BINARY_FRAG_SIZE);
+var binaryScreenInv = new Screen(BINARY_DIGITS, 1, BASE_X + 440, 
+                              5, BINARY_FRAG_SIZE);
+var shownSecondsLeft = -1;
+var countDownZero;
+
+colonScreen.fillStyle = "#169cd3";
+binaryScreen.noFragReuse = true;
+binaryScreenInv.noFragReuse = true;
+
+colonScreen.setTargetSet(
+       [ new Slot(0, 1, SHAPE_UPPER),
+         new Slot(0, 3, SHAPE_UPPER)]);
+colonScreen.commit();
+
+function startCountdown(totalTime) {
+  countDownZero = getUnixTimeMillis() + totalTime * 1000;
+  clockTick();
+}
+
+function getUnixTimeMillis() {
+  return (new Date()).getTime();
+}
+
+function clockTick() {
+  var c = document.getElementById("mycanvas").getContext("2d");
+  c.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  var rightNow = getUnixTimeMillis();
+  var timeLeft = countDownZero - rightNow;
+
+  if (timeLeft < 0) timeLeft = 0;
+
+  var secondsLeft = Math.floor(timeLeft / 1000);
+
+  var millis = 1000 - timeLeft % 1000;
+  var tween;
+  
+  var THRESH = 700;
+  var EXPONENT = 2;
+  if (millis < THRESH) {
+    var tf = 1 - (millis / THRESH);
+    tween = 1 - Math.pow(tf, EXPONENT);
+  }
+  else
+    tween = 1;
+
+  if (shownSecondsLeft != secondsLeft) {
+    var minutesLeft = Math.floor(secondsLeft / 60);
+    var secondsRemainder = secondsLeft % 60;
+
+    minutesScreen.commit();
+    secondsScreen.commit();
+    binaryScreen.commit();
+    binaryScreenInv.commit();
+
+    var slotSet = [];
+    addDigitToSlotSet(slotSet, Math.floor(minutesLeft / 10), 0, 0);
+    addDigitToSlotSet(slotSet, minutesLeft % 10, 4, 0);
+    minutesScreen.setTargetSet(slotSet);
+    
+    slotSet = [];
+    addDigitToSlotSet(slotSet, Math.floor(secondsRemainder / 10), 0, 0);
+    addDigitToSlotSet(slotSet, secondsRemainder % 10, 4, 0);
+    secondsScreen.setTargetSet(slotSet);
+
+    slotSet = [];
+    addBinaryNumberToSet(slotSet, secondsLeft, BINARY_DIGITS, false);
+    binaryScreen.setTargetSet(slotSet);
+    
+    slotSet = [];
+    addBinaryNumberToSet(slotSet, secondsLeft, BINARY_DIGITS, true);
+    binaryScreenInv.setTargetSet(slotSet);
+
+    shownSecondsLeft = secondsLeft;
+  }
+
+  minutesScreen.paint(c, tween);
+  secondsScreen.paint(c, tween);
+  binaryScreen.paint(c, tween);
+  binaryScreenInv.paint(c, tween);
+  colonScreen.paint(c, 1.0);
+  setTimeout(clockTick, 20);
+}
+
+function addBinaryNumberToSet(slotSet, num, numBits, inverted) {
+  var bit = 0;
+  var target_remainder = inverted ? 0 : 1;
+  while (num > 0) {
+    if (num % 2 == target_remainder) {
+      //slotSet.push(new Slot(numBits - bit - 1, 0, SHAPE_UPPER));
+      slotSet.push(new Slot(numBits - bit - 1, 0, SHAPE_LOWER));
+    }
+    num >>= 1;
+    bit++;
+  }
+}
+
+function addDigitToSlotSet(slotSet, digit, col0, row0) {
+  var i, j;
+
+  if (digit < 0) digit = 0;
+  if (digit > 9) digit = 9;
+
+  for (i = 0; i < 5; i++) {
+    for (j = 0; j < 3; j++) {
+      var c = DIGIT_SCHEMAS[i][5 * digit + j];
+      if (c == 'O' || c == "\'")
+        slotSet.push(new Slot(col0 + j, row0 + i, SHAPE_UPPER));
+      if (c == 'O' || c == ",")
+        slotSet.push(new Slot(col0 + j, row0 + i, SHAPE_LOWER));
+    }
+  }
+}
+
+var DIGIT_SCHEMAS = [
+ ",OO    ,  ,OO  ,OO  , ,  ,O'  ,O'  ,OO  ,OO  ,OO",
+ "O O    O    O    O  O O  O    O      O  O O  O O",
+ "O O    O  ,OO   ,O  OOO  OOO  OOO    O  OOO  OOO",
+ "O O    O  O      O    O    O  O O    O  O O    O",
+ "OO'    '  OO'  ,O'    '  OO'  OO'    '  OO'  OO'"];
+
+function onButtonClicked() {
+  var t = document.getElementById("countdown").value;
+  if (t.length != 5 || t[2] != ":") {
+    alert("Incorrect format. Use MM:SS.");
+    return;
+  }
+
+  var totalTime = 60 * t.substr(0, 2) + 1 * t.substr(3, 2);
+
+  document.getElementById('setupdiv').style.display = "none";
+  applyCityTheme(document.getElementById("city").value);
+
+  startCountdown(totalTime);
+}
+
+function applyCityTheme(city) {
+  t = CITIES[city];
+  document.body.style.background = t.bgColor;
+  document.getElementById("mycanvas").style.background = "url(" + t.bgImage +
+        ") no-repeat bottom center";
+
+  secondsScreen.fillStyle = t.secondColor;
+  minutesScreen.fillStyle = t.minuteColor;
+  binaryScreen.fillStyle = t.binaryOneColor;
+  binaryScreenInv.fillStyle = t.binaryZeroColor;
+}
+
+</script>
+</head>
+<body>
+
+<div id="setupdiv">
+Enter total time to count down in MM:SS format (minutes and seconds):
+<br>
+<input type="text" id="countdown" maxlength="5" style="width: 100px" 
+       value="30:00" />
+<br><br>
+What city theme should we use?<br>
+<select name="city" id="city">
+  <option value="SAO">SAO</option>
+  <option value="BUE">BUE</option>
+  <option value="MSK">MSK</option>
+  <option value="PRG">PRG</option>
+  <option value="TOK">TOK</option>
+  <option value="SYD">SYD</option>
+  <option value="TLV">TLV</option>
+  <option value="BER">BER</option>
+</select>
+<br><br>
+<button onclick="onButtonClicked()">Go!</button>
+</div>
+
+<div id="centerdiv">
+<canvas id="mycanvas" width="800" height="600">
+</canvas>
+</div>
+
+</body>
+</html>
+

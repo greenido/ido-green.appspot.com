@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Ido's Flickr Photos</title>
+	<meta name="author" content="Ido Green">
+	
+	<!-- Custom styles. -->
+	<style>
+		/* Image will scale to whatever width and height you set here. */
+		
+	</style>
+	
+	<!-- link to plug-in style sheet -->
+	<link rel="stylesheet" href="../css/jquery-flickr.css" type="text/css" charset="utf-8">
+	
+	<!-- Google hosted jQuery core -->
+	<script src="http://www.google.com/jsapi"></script>
+	<script>google.load("jquery", "1");</script>
+	
+	<!-- Link to js file from plug-in -->
+	<script src="../js/jquery-flickr-gallery.js" type="text/javascript" charset="utf-8"></script>
+	
+	<!-- JS call to set up gallery -->
+	<script>
+		$(document).ready(function() {
+		    $('#flickr_div').flickrGallery({
+				"flickrSet" : "72157626873401204",
+				"flickrKey" : "e9c787636ab56b12a4dea7ba9b9b734c"
+			});
+		});
+	</script>
+</head>
+<body>
+	<div id="flickr_div"></div>
+	<!-- "flickr_count" Required if you want count and titles - Styled above. -->
+	
+	<div id="flickr_count">
+	
+	</div>
+	<div id="controlButtons" class="shake">
+		<img src="../imgs/play.jpeg" />
+	</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+  <div style="max-width: 700px; margin: 0 auto 0 auto;">
+    <button id="swinstall">Install Service Worker</button>
+    <button id="swmessage">Send Message to Service Worker</button>
+    <button id="swuninstall">Uninstall Service Worker</button>
+    <div id="js-log" style="height: 400px; overflow: scroll; color: white; background: black; font-family: monospace; line-height: 150%; font-size: 12px; padding: 7px;"></div> 
+   
+  </div>
+  <script>
+    function log(text) {
+      var el = document.createElement('div');
+      el.innerText = text;
+      document.getElementById('js-log').appendChild(el);
+    }
+ 
+    if (navigator.serviceWorker) {
+      log("Browser supports Service Worker");
+      if (navigator.serviceWorker.current) {
+        log("Current Service Worker state: \\o/");
+        window.ourServiceWorker = navigator.serviceWorker;
+      } else {
+        log("No Service Worker active...");
+      }
+ 
+      swinstall.addEventListener('click', function() {
+        log('About to try to install a Service Worker');
+        navigator.serviceWorker.register('basic1_sw.js')
+          .then(function(serviceWorker) {
+            log('Successfully installed ServiceWorker');
+            window.ourServiceWorker = serviceWorker;
+          }, function(why) {
+            log('Failed to install:' + why);
+          });
+      });
+ 
+      swuninstall.addEventListener('click', function() {
+        log('About to try to uninstall a Service Worker');
+        navigator.serviceWorker.unregister('basic1_sw.js')
+          .then(function() {
+            log('Successfully uninstalled ServiceWorker');
+            delete window.ourServiceWorker;
+          }, function(why) {
+            log('Failed to uninstall'+why);
+          });
+      });
+ 
+      swmessage.addEventListener('click', function() {
+        if (window.ourServiceWorker) {
+          log('About to try to send a message to the Service Worker');
+          window.ourServiceWorker.postMessage("Hello Service Worker, can you hear me?");
+  } else {
+          log("Service Worker not ready yet");
+        }
+      });
+    } else {
+      log("Browser does not support Service Worker, are you using Chrome Canary?  Is the Service Worker flag switched on? chrome://flags/#enable-service-worker");
+    }
+  </script>
+  </body>
+</html>
