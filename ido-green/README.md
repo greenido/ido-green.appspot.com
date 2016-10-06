@@ -1,9 +1,10 @@
 ## [ido-green.appspot.com](http://Ido-green.appspot.com/)
-My projects and demos 
+My projects and demos
 
 ## Tech Stack
 * Bootstrap
 * [Font-Awesome](http://fortawesome.github.io/Font-Awesome/icons/#web-application)
+* http://fontawesome.io/icons/
 
 ## Bugs and Issues
 Have a bug or an issue with this theme? [Open a new issue](https://github.com/greenido/ido-green.appspot.com/issues) here on GitHub.
@@ -16,4 +17,3 @@ Have a bug or an issue with this theme? [Open a new issue](https://github.com/gr
 
 
 [![Analytics](https://ga-beacon.appspot.com/UA-65622529-1/ido-green.appspot.com/main)](https://github.com/igrigorik/ga-beacon)
-
