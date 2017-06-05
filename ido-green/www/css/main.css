@@ -65,12 +65,12 @@ h6 {
 }
 
 .btn-primary {
-    border-color: #fed136;
+    border-color: #1b170a;
     text-transform: uppercase;
     font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
     font-weight: 700;
     color: #fff;
-    background-color: #fed136;
+    background-color: rgba(66, 53, 10, 0.67);
     margin-top: 0.3em;
 }
 
