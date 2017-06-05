@@ -1,7 +1,6 @@
 runtime: php55
 api_version: 1
 threadsafe: true
-
 default_expiration: "14d"
 
 handlers:
