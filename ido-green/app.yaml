@@ -4,10 +4,11 @@ threadsafe: true
 default_expiration: "14d"
 
 handlers:
- - url: /
-   static_files: www/index.html
-   upload: www/index.html
+- url: /
+  static_files: www/index.html
+  upload: www/index.html
 
- - url: /(.*)
-   static_files: www/\1
-   upload: www/(.*)
+- url: /(.*)
+  static_files: www/\1
+  upload: www/(.*)
+
