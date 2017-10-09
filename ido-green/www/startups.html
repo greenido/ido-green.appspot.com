@@ -751,17 +751,12 @@
             font-weight: 400;
             font-style: normal
         }
-        
         .fa-times:before {
-            content: "\f00d"
+            content: "\f00d";
         }
-        
         .fa-mail-forward:before {
-            content: "\f064"
+            content: "\f064";
         }
-        
-        ;
-    }
     </style>
 
     <link rel="manifest" href="manifest.json">
@@ -835,41 +830,41 @@
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>Pitch Deck Template</h2>
-                    <iframe src="https://docs.google.com/presentation/d/1-diRU4P9IyDhp85fFY8OlDSbiURQgC4UmGrsk0CqW5E/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe class="g-slides" src="https://docs.google.com/presentation/d/1-diRU4P9IyDhp85fFY8OlDSbiURQgC4UmGrsk0CqW5E/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>The Idea</h2>
-                    <iframe id="s-idea" src="https://docs.google.com/presentation/d/1cWTBEe8eVJIKSGoom1_fn2Tr7HPeOzHkYvXqFvE_fjM/embed?start=true&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe id="s-idea" class="g-slides" src="https://docs.google.com/presentation/d/1cWTBEe8eVJIKSGoom1_fn2Tr7HPeOzHkYvXqFvE_fjM/embed?start=true&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>The Product</h2>
-                    <iframe id="s-product" src="https://docs.google.com/presentation/d/1QhJlS0mFxcCMY2CVngbRBT8FuCoaIQowFIbOR-qTtFY/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe id="s-product" class="g-slides" src="https://docs.google.com/presentation/d/1QhJlS0mFxcCMY2CVngbRBT8FuCoaIQowFIbOR-qTtFY/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>The Team</h2>
-                    <iframe id="s-team" src="https://docs.google.com/presentation/d/17gYxGHzu29scDJ-xsHXK3mfP6YXnTW6HX3eAA7Sb-UY/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe id="s-team" class="g-slides" src="https://docs.google.com/presentation/d/17gYxGHzu29scDJ-xsHXK3mfP6YXnTW6HX3eAA7Sb-UY/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>The Execution</h2>
-                    <iframe id="s-exec" src="https://docs.google.com/presentation/d/1l6gjA3t01aPdrfJIZt1v-3wU_nzUCsU07nlN83Ho7Xk/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe id="s-exec" class="g-slides" src="https://docs.google.com/presentation/d/1l6gjA3t01aPdrfJIZt1v-3wU_nzUCsU07nlN83Ho7Xk/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-12  ">
                     <h2>How to Start and Excel with the Elephants (Dec 2015)</h2>
-                    <iframe id="s-eleph" src="https://docs.google.com/presentation/d/1ThL5wVyuykvHURAPvuqWymuy9GmljCjP71doq8Q4Fa4/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="749" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+                    <iframe id="s-eleph" class="g-slides" src="https://docs.google.com/presentation/d/1ThL5wVyuykvHURAPvuqWymuy9GmljCjP71doq8Q4Fa4/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="749" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                 </div>
             </div>
 
@@ -951,11 +946,7 @@
             // Ugly. But this will work until G-slides will improve their embedding feature.
             var slidesWidth = $(window).width() - 100;
             if (slidesWidth < 900) {
-                $("#s-idea").css('width', slidesWidth);
-                $("#s-product").css('width', slidesWidth);
-                $("#s-team").css('width', slidesWidth);
-                $("#s-exec").css('width', slidesWidth);
-                $("#s-eleph").css('width', slidesWidth);
+                $(".g-slides").css('width', slidesWidth+50);
             }
         });
     </script>
