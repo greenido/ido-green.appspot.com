@@ -1,18 +1,764 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description"
-        content="Ido Green (Developer Advocate At Google Chrome) projets, demos and presentations">
+    <meta name="description" content="Ido Green (Developer Advocate At Google Chrome) projets, demos and presentations">
     <meta name="author" content="Ido Green | greenido.wordpress.com | @greenido">
     <link rel="canonical" href="https://ido-green.appspot.com/" />
 
     <title>Ido Green - Google Assistant, Bots and Projects</title>
 
     <style type="text/css">
-    .sr-only,img{border:0}button,h2{color:inherit}.btn,img{vertical-align:middle}.modal,a{outline:0}.btn,.text-center,header{text-align:center}.btn,button{cursor:pointer}.navbar-fixed-top .navbar-collapse{max-height:340px}html{font-family:sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;font-size:10px;-webkit-tap-highlight-color:transparent}header,nav,section{display:block}a{background-color:transparent}b{font-weight:700}*,:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}button{margin:0;font:inherit;overflow:visible;text-transform:none;-webkit-appearance:button;font-family:inherit;font-size:inherit;line-height:inherit}button::-moz-focus-inner{padding:0;border:0}.btn,.navbar-toggle{background-image:none}body{margin:0;background-color:#fff;font-size:14px;line-height:1.42857143;color:#333}.img-responsive{display:block;max-width:100%;height:auto}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}.col-lg-6,.col-md-6,.container{padding-right:15px;padding-left:15px}h2,ul{margin-bottom:10px}h2{line-height:1.1;margin-top:20px;font-size:30px}p{margin:0 0 10px}ul{margin-top:0}.btn,.nav{margin-bottom:0}@media (min-width:768px){.container{width:750px}}.container{margin-right:auto;margin-left:auto}@media (min-width:992px){.container{width:970px}}@media (min-width:1200px){.container{width:1170px}}.row{margin-right:-15px;margin-left:-15px}.col-lg-6,.col-md-6{position:relative;min-height:1px}@media (min-width:992px){.col-md-6{float:left;width:50%}.col-md-offset-4{margin-left:33.33333333%}}@media (min-width:1200px){.col-lg-6{float:left;width:50%}.col-lg-offset-3{margin-left:25%}}.btn{display:inline-block;padding:6px 12px;font-size:14px;font-weight:400;line-height:1.42857143;white-space:nowrap;-ms-touch-action:manipulation;touch-action:manipulation;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;border:1px solid transparent;border-radius:4px}.fade{opacity:0;-webkit-transition:opacity .15s linear;-o-transition:opacity .15s linear;transition:opacity .15s linear}.collapse{display:none;visibility:hidden}.nav>li,.nav>li>a{display:block;position:relative}.nav{padding-left:0;list-style:none}.nav>li>a{padding:10px 15px}.navbar{position:relative;min-height:50px;margin-bottom:20px;border:1px solid transparent}.navbar-collapse{padding-right:15px;padding-left:15px;overflow-x:visible;-webkit-overflow-scrolling:touch;border-top:1px solid transparent;-webkit-box-shadow:inset 0 1px 0 rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}@media (min-width:768px){.navbar{border-radius:4px}.navbar-header{float:left}.navbar-collapse{width:auto;border-top:0;-webkit-box-shadow:none;box-shadow:none}.navbar-collapse.collapse{display:block!important;height:auto!important;padding-bottom:0;overflow:visible!important;visibility:visible!important}.navbar-fixed-top .navbar-collapse{padding-right:0;padding-left:0}}@media (max-device-width:480px) and (orientation:landscape){.navbar-fixed-top .navbar-collapse{max-height:200px}}.container>.navbar-collapse,.container>.navbar-header{margin-right:-15px;margin-left:-15px}.navbar-fixed-top{position:fixed;right:0;left:0;z-index:1030;top:0;border-width:0 0 1px}.navbar-brand{float:left;height:50px;padding:15px;font-size:18px;line-height:20px}@media (min-width:768px){.container>.navbar-collapse,.container>.navbar-header{margin-right:0;margin-left:0}.navbar-fixed-top{border-radius:0}.navbar>.container .navbar-brand{margin-left:-15px}}.navbar-toggle{position:relative;float:right;padding:9px 10px;margin-top:8px;margin-right:15px;margin-bottom:8px;background-color:transparent;border:1px solid transparent;border-radius:4px}.navbar-toggle .icon-bar{display:block;width:22px;height:2px;border-radius:1px}.navbar-toggle .icon-bar+.icon-bar{margin-top:4px}.navbar-nav{margin:7.5px -15px}.navbar-nav>li>a{padding-top:10px;padding-bottom:10px;line-height:20px}.navbar-default .navbar-nav>li>a{color:#777}.navbar-default .navbar-collapse{border-color:#e7e7e7}.modal{overflow:hidden;position:fixed;top:0;right:0;bottom:0;left:0;z-index:1040;display:none;-webkit-overflow-scrolling:touch}.modal-content{-webkit-background-clip:padding-box;position:relative;background-color:#fff;background-clip:padding-box;border:1px solid #999;border:1px solid rgba(0,0,0,.2);border-radius:6px;outline:0;-webkit-box-shadow:0 3px 9px rgba(0,0,0,.5);box-shadow:0 3px 9px rgba(0,0,0,.5)}.modal-body{position:relative;padding:15px}@media (min-width:768px){.navbar-toggle{display:none}.navbar-nav{float:left;margin:0}.navbar-nav>li{float:left}.navbar-nav>li>a{padding-top:15px;padding-bottom:15px}.navbar-right{float:right!important;margin-right:-15px}.modal-content{-webkit-box-shadow:0 5px 15px rgba(0,0,0,.5);box-shadow:0 5px 15px rgba(0,0,0,.5)}}.container:after,.container:before,.nav:after,.nav:before,.navbar-collapse:after,.navbar-collapse:before,.navbar-header:after,.navbar-header:before,.navbar:after,.navbar:before,.row:after,.row:before{display:table;content:" "}.container:after,.nav:after,.navbar-collapse:after,.navbar-header:after,.navbar:after,.row:after{clear:both}.hidden{display:none!important;visibility:hidden!important}body{overflow-x:hidden;font-family:"Roboto Slab","Helvetica Neue",Helvetica,Arial,sans-serif;webkit-tap-highlight-color:#fed136}.btn-primary,.btn-xl,h2{font-family:Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;text-transform:uppercase}p{font-size:14px;line-height:1.75}p.large{font-size:16px}a{text-decoration:none;color:#33076B}h2{font-weight:700}.btn-primary{border-color:#00008B;font-weight:300;color:#fff;background-color:#00008B;margin-top:.3em}.btn-xl{padding:20px 40px;border-color:#fed136;border-radius:3px;font-size:18px;font-weight:700;color:#fff;background-color:#fed136}.navbar-default{border-color:transparent;background-color:#222}.navbar-default .navbar-brand{font-family:"Kaushan Script","Helvetica Neue",Helvetica,Arial,cursive;color:#fed136}.navbar-default .navbar-collapse{border-color:rgba(255,255,255,.02)}.navbar-default .navbar-toggle{border-color:#fed136;background-color:#fed136}.navbar-default .navbar-toggle .icon-bar{background-color:#fff}.navbar-default .nav li a{text-transform:uppercase;font-family:Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:400;letter-spacing:1px;color:#fff}.navbar-default .navbar-nav>.active>a{border-radius:0;color:#fff;background-color:#fed136}@media (min-width:768px){.navbar-default{padding:25px 0;border:0;background-color:transparent;-webkit-transition:padding .3s;-moz-transition:padding .3s;transition:padding .3s}.navbar-default .navbar-brand{font-size:2em;-webkit-transition:all .3s;-moz-transition:all .3s;transition:all .3s}.navbar-default .navbar-nav>.active>a{border-radius:3px}}header{color:#fff;background-attachment:scroll;background-image:url(img/header-bg-o.jpg);background-position:center center;background-repeat:none;-webkit-background-size:cover;-moz-background-size:cover;background-size:cover;-o-background-size:cover}header .intro-text{padding-top:100px;padding-bottom:50px}header .intro-text .intro-lead-in{margin-bottom:25px;font-family:"Droid Serif","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:22px;font-style:italic;line-height:22px}header .intro-text .intro-heading{margin-bottom:25px;text-transform:uppercase;font-family:Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:50px;font-weight:700;line-height:50px}@media (max-width:400px){header{text-align:center;color:#fff;background-attachment:scroll;background-image:url(img/header-bg.jpg);background-position:center center;background-repeat:none;-webkit-background-size:cover;-moz-background-size:cover;background-size:cover;-o-background-size:cover}.btn-close{margin-top:.2em}}@media (min-width:768px){header .intro-text{padding-top:300px;padding-bottom:200px}header .intro-text .intro-lead-in{margin-bottom:25px;font-family:"Droid Serif","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:40px;font-style:italic;line-height:40px}header .intro-text .intro-heading{margin-bottom:50px;text-transform:uppercase;font-family:Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:75px;font-weight:700;line-height:75px}section{padding:50px 0}}section{padding:50px 0}.portfolio-modal .modal-content{padding:100px 0;min-height:100%;border:0;border-radius:0;text-align:center;background-clip:border-box;-webkit-box-shadow:none;box-shadow:none}.portfolio-modal .modal-content h2{margin-bottom:15px;font-size:3em}.portfolio-modal .modal-content img{margin-bottom:30px}.portfolio-modal .close-modal{position:absolute;top:25px;right:25px;width:75px;height:75px;background-color:transparent;cursor:pointer}.portfolio-modal .close-modal .lr{z-index:1051;width:1px;height:75px;margin-left:35px;background-color:#222;-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.portfolio-modal .close-modal .lr .rl{z-index:1052;width:1px;height:75px;background-color:#222;-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.fa{-moz-osx-font-smoothing:grayscale;display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased}::-moz-selection{text-shadow:none;background:#fed136}::selection{text-shadow:none;background:#fed136}img::-moz-selection{background:0 0}ul.nav.navbar-nav.navbar-right{background:#00008b}.navbar-header.page-scroll{background:#00008b;border-radius:.3em}.btn-close{background-color:rgba(142,142,125,.78)}.course-highlight{background-color:rgba(0,0,139,.11);padding-top:1em;padding-bottom:1em;margin-bottom:1em}@font-face{font-family:FontAwesome;src:url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.eot?v=4.4.0%27);src:url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.eot?#iefix&v=4.4.0%27) format('embedded-opentype'),url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.woff2?v=4.4.0%27) format('woff2'),url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.woff?v=4.4.0%27) format('woff'),url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.ttf?v=4.4.0%27) format('truetype'),url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.svg?v=4.4.0#fontawesomeregular%27) format('svg');font-weight:400;font-style:normal}.fa-times:before{content:"\f00d"}.fa-mail-forward:before{content:"\f064"}
+        .sr-only,
+        img {
+            border: 0
+        }
+        
+        button,
+        h2 {
+            color: inherit
+        }
+        
+        .btn,
+        img {
+            vertical-align: middle
+        }
+        
+        .modal,
+        a {
+            outline: 0
+        }
+        
+        .btn,
+        .text-center,
+        header {
+            text-align: center
+        }
+        
+        .btn,
+        button {
+            cursor: pointer
+        }
+        
+        .navbar-fixed-top .navbar-collapse {
+            max-height: 340px
+        }
+        
+        html {
+            font-family: sans-serif;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            font-size: 10px;
+            -webkit-tap-highlight-color: transparent
+        }
+        
+        header,
+        nav,
+        section {
+            display: block
+        }
+        
+        a {
+            background-color: transparent
+        }
+        
+        b {
+            font-weight: 700
+        }
+        
+        *,
+        :after,
+        :before {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box
+        }
+        
+        button {
+            margin: 0;
+            font: inherit;
+            overflow: visible;
+            text-transform: none;
+            -webkit-appearance: button;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit
+        }
+        
+        button::-moz-focus-inner {
+            padding: 0;
+            border: 0
+        }
+        
+        .btn,
+        .navbar-toggle {
+            background-image: none
+        }
+        
+        body {
+            margin: 0;
+            background-color: #fff;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #333
+        }
+        
+        .img-responsive {
+            display: block;
+            max-width: 100%;
+            height: auto
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0)
+        }
+        
+        .col-lg-6,
+        .col-md-6,
+        .container {
+            padding-right: 15px;
+            padding-left: 15px
+        }
+        
+        h2,
+        ul {
+            margin-bottom: 10px
+        }
+        
+        h2 {
+            line-height: 1.1;
+            margin-top: 20px;
+            font-size: 30px
+        }
+        
+        p {
+            margin: 0 0 10px
+        }
+        
+        ul {
+            margin-top: 0
+        }
+        
+        .btn,
+        .nav {
+            margin-bottom: 0
+        }
+        
+        @media (min-width:768px) {
+            .container {
+                width: 750px
+            }
+        }
+        
+        .container {
+            margin-right: auto;
+            margin-left: auto
+        }
+        
+        @media (min-width:992px) {
+            .container {
+                width: 970px
+            }
+        }
+        
+        @media (min-width:1200px) {
+            .container {
+                width: 1170px
+            }
+        }
+        
+        .row {
+            margin-right: -15px;
+            margin-left: -15px
+        }
+        
+        .col-lg-6,
+        .col-md-6 {
+            position: relative;
+            min-height: 1px
+        }
+        
+        @media (min-width:992px) {
+            .col-md-6 {
+                float: left;
+                width: 50%
+            }
+            .col-md-offset-4 {
+                margin-left: 33.33333333%
+            }
+        }
+        
+        @media (min-width:1200px) {
+            .col-lg-6 {
+                float: left;
+                width: 50%
+            }
+            .col-lg-offset-3 {
+                margin-left: 25%
+            }
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857143;
+            white-space: nowrap;
+            -ms-touch-action: manipulation;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            border: 1px solid transparent;
+            border-radius: 4px
+        }
+        
+        .fade {
+            opacity: 0;
+            -webkit-transition: opacity .15s linear;
+            -o-transition: opacity .15s linear;
+            transition: opacity .15s linear
+        }
+        
+        .collapse {
+            display: none;
+            visibility: hidden
+        }
+        
+        .nav>li,
+        .nav>li>a {
+            display: block;
+            position: relative
+        }
+        
+        .nav {
+            padding-left: 0;
+            list-style: none
+        }
+        
+        .nav>li>a {
+            padding: 10px 15px
+        }
+        
+        .navbar {
+            position: relative;
+            min-height: 50px;
+            margin-bottom: 20px;
+            border: 1px solid transparent
+        }
+        
+        .navbar-collapse {
+            padding-right: 15px;
+            padding-left: 15px;
+            overflow-x: visible;
+            -webkit-overflow-scrolling: touch;
+            border-top: 1px solid transparent;
+            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1)
+        }
+        
+        @media (min-width:768px) {
+            .navbar {
+                border-radius: 4px
+            }
+            .navbar-header {
+                float: left
+            }
+            .navbar-collapse {
+                width: auto;
+                border-top: 0;
+                -webkit-box-shadow: none;
+                box-shadow: none
+            }
+            .navbar-collapse.collapse {
+                display: block!important;
+                height: auto!important;
+                padding-bottom: 0;
+                overflow: visible!important;
+                visibility: visible!important
+            }
+            .navbar-fixed-top .navbar-collapse {
+                padding-right: 0;
+                padding-left: 0
+            }
+        }
+        
+        @media (max-device-width:480px) and (orientation:landscape) {
+            .navbar-fixed-top .navbar-collapse {
+                max-height: 200px
+            }
+        }
+        
+        .container>.navbar-collapse,
+        .container>.navbar-header {
+            margin-right: -15px;
+            margin-left: -15px
+        }
+        
+        .navbar-fixed-top {
+            position: fixed;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+            top: 0;
+            border-width: 0 0 1px
+        }
+        
+        .navbar-brand {
+            float: left;
+            height: 50px;
+            padding: 15px;
+            font-size: 18px;
+            line-height: 20px
+        }
+        
+        @media (min-width:768px) {
+            .container>.navbar-collapse,
+            .container>.navbar-header {
+                margin-right: 0;
+                margin-left: 0
+            }
+            .navbar-fixed-top {
+                border-radius: 0
+            }
+            .navbar>.container .navbar-brand {
+                margin-left: -15px
+            }
+        }
+        
+        .navbar-toggle {
+            position: relative;
+            float: right;
+            padding: 9px 10px;
+            margin-top: 8px;
+            margin-right: 15px;
+            margin-bottom: 8px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px
+        }
+        
+        .navbar-toggle .icon-bar {
+            display: block;
+            width: 22px;
+            height: 2px;
+            border-radius: 1px
+        }
+        
+        .navbar-toggle .icon-bar+.icon-bar {
+            margin-top: 4px
+        }
+        
+        .navbar-nav {
+            margin: 7.5px -15px
+        }
+        
+        .navbar-nav>li>a {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            line-height: 20px
+        }
+        
+        .navbar-default .navbar-nav>li>a {
+            color: #777
+        }
+        
+        .navbar-default .navbar-collapse {
+            border-color: #e7e7e7
+        }
+        
+        .modal {
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            display: none;
+            -webkit-overflow-scrolling: touch
+        }
+        
+        .modal-content {
+            -webkit-background-clip: padding-box;
+            position: relative;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #999;
+            border: 1px solid rgba(0, 0, 0, .2);
+            border-radius: 6px;
+            outline: 0;
+            -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+            box-shadow: 0 3px 9px rgba(0, 0, 0, .5)
+        }
+        
+        .modal-body {
+            position: relative;
+            padding: 15px
+        }
+        
+        @media (min-width:768px) {
+            .navbar-toggle {
+                display: none
+            }
+            .navbar-nav {
+                float: left;
+                margin: 0
+            }
+            .navbar-nav>li {
+                float: left
+            }
+            .navbar-nav>li>a {
+                padding-top: 15px;
+                padding-bottom: 15px
+            }
+            .navbar-right {
+                float: right!important;
+                margin-right: -15px
+            }
+            .modal-content {
+                -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, .5);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, .5)
+            }
+        }
+        
+        .container:after,
+        .container:before,
+        .nav:after,
+        .nav:before,
+        .navbar-collapse:after,
+        .navbar-collapse:before,
+        .navbar-header:after,
+        .navbar-header:before,
+        .navbar:after,
+        .navbar:before,
+        .row:after,
+        .row:before {
+            display: table;
+            content: " "
+        }
+        
+        .container:after,
+        .nav:after,
+        .navbar-collapse:after,
+        .navbar-header:after,
+        .navbar:after,
+        .row:after {
+            clear: both
+        }
+        
+        .hidden {
+            display: none!important;
+            visibility: hidden!important
+        }
+        
+        body {
+            overflow-x: hidden;
+            font-family: "Roboto Slab", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            webkit-tap-highlight-color: #fed136
+        }
+        
+        .btn-primary,
+        .btn-xl,
+        h2 {
+            font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            text-transform: uppercase
+        }
+        
+        p {
+            font-size: 14px;
+            line-height: 1.75
+        }
+        
+        p.large {
+            font-size: 16px
+        }
+        
+        a {
+            text-decoration: none;
+            color: #33076B
+        }
+        
+        h2 {
+            font-weight: 700
+        }
+        
+        .btn-primary {
+            border-color: #00008B;
+            font-weight: 300;
+            color: #fff;
+            background-color: #00008B;
+            margin-top: .3em
+        }
+        
+        .btn-xl {
+            padding: 20px 40px;
+            border-color: #fed136;
+            border-radius: 3px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            background-color: #fed136
+        }
+        
+        .navbar-default {
+            border-color: transparent;
+            background-color: #222
+        }
+        
+        .navbar-default .navbar-brand {
+            font-family: "Kaushan Script", "Helvetica Neue", Helvetica, Arial, cursive;
+            color: #fed136
+        }
+        
+        .navbar-default .navbar-collapse {
+            border-color: rgba(255, 255, 255, .02)
+        }
+        
+        .navbar-default .navbar-toggle {
+            border-color: #fed136;
+            background-color: #fed136
+        }
+        
+        .navbar-default .navbar-toggle .icon-bar {
+            background-color: #fff
+        }
+        
+        .navbar-default .nav li a {
+            text-transform: uppercase;
+            font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: #fff
+        }
+        
+        .navbar-default .navbar-nav>.active>a {
+            border-radius: 0;
+            color: #fff;
+            background-color: #fed136
+        }
+        
+        @media (min-width:768px) {
+            .navbar-default {
+                padding: 25px 0;
+                border: 0;
+                background-color: transparent;
+                -webkit-transition: padding .3s;
+                -moz-transition: padding .3s;
+                transition: padding .3s
+            }
+            .navbar-default .navbar-brand {
+                font-size: 2em;
+                -webkit-transition: all .3s;
+                -moz-transition: all .3s;
+                transition: all .3s
+            }
+            .navbar-default .navbar-nav>.active>a {
+                border-radius: 3px
+            }
+        }
+        
+        header {
+            color: #fff;
+            background-attachment: scroll;
+            background-image: url(img/header-bg-o.jpg);
+            background-position: center center;
+            background-repeat: none;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            background-size: cover;
+            -o-background-size: cover
+        }
+        
+        header .intro-text {
+            padding-top: 100px;
+            padding-bottom: 50px
+        }
+        
+        header .intro-text .intro-lead-in {
+            margin-bottom: 25px;
+            font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 22px;
+            font-style: italic;
+            line-height: 22px
+        }
+        
+        header .intro-text .intro-heading {
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 50px;
+            font-weight: 700;
+            line-height: 50px
+        }
+        
+        @media (max-width:400px) {
+            header {
+                text-align: center;
+                color: #fff;
+                background-attachment: scroll;
+                background-image: url(img/header-bg.jpg);
+                background-position: center center;
+                background-repeat: none;
+                -webkit-background-size: cover;
+                -moz-background-size: cover;
+                background-size: cover;
+                -o-background-size: cover
+            }
+            .btn-close {
+                margin-top: .2em
+            }
+        }
+        
+        @media (min-width:768px) {
+            header .intro-text {
+                padding-top: 300px;
+                padding-bottom: 200px
+            }
+            header .intro-text .intro-lead-in {
+                margin-bottom: 25px;
+                font-family: "Droid Serif", "Helvetica Neue", Helvetica, Arial, sans-serif;
+                font-size: 40px;
+                font-style: italic;
+                line-height: 40px
+            }
+            header .intro-text .intro-heading {
+                margin-bottom: 50px;
+                text-transform: uppercase;
+                font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+                font-size: 75px;
+                font-weight: 700;
+                line-height: 75px
+            }
+            section {
+                padding: 50px 0
+            }
+        }
+        
+        section {
+            padding: 50px 0
+        }
+        
+        .portfolio-modal .modal-content {
+            padding: 100px 0;
+            min-height: 100%;
+            border: 0;
+            border-radius: 0;
+            text-align: center;
+            background-clip: border-box;
+            -webkit-box-shadow: none;
+            box-shadow: none
+        }
+        
+        .portfolio-modal .modal-content h2 {
+            margin-bottom: 15px;
+            font-size: 3em
+        }
+        
+        .portfolio-modal .modal-content img {
+            margin-bottom: 30px
+        }
+        
+        .portfolio-modal .close-modal {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 75px;
+            height: 75px;
+            background-color: transparent;
+            cursor: pointer
+        }
+        
+        .portfolio-modal .close-modal .lr {
+            z-index: 1051;
+            width: 1px;
+            height: 75px;
+            margin-left: 35px;
+            background-color: #222;
+            -webkit-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+            transform: rotate(45deg)
+        }
+        
+        .portfolio-modal .close-modal .lr .rl {
+            z-index: 1052;
+            width: 1px;
+            height: 75px;
+            background-color: #222;
+            -webkit-transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            transform: rotate(90deg)
+        }
+        
+        .fa {
+            -moz-osx-font-smoothing: grayscale;
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased
+        }
+        
+        ::-moz-selection {
+            text-shadow: none;
+            background: #fed136
+        }
+        
+        ::selection {
+            text-shadow: none;
+            background: #fed136
+        }
+        
+        img::-moz-selection {
+            background: 0 0
+        }
+        
+        ul.nav.navbar-nav.navbar-right {
+            background: #00008b
+        }
+        
+        .navbar-header.page-scroll {
+            background: #00008b;
+            border-radius: .3em
+        }
+        
+        .btn-close {
+            background-color: rgba(142, 142, 125, .78)
+        }
+        
+        .course-highlight {
+            background-color: rgba(0, 0, 139, .11);
+            padding-top: 1em;
+            padding-bottom: 1em;
+            margin-bottom: 1em
+        }
+        
+        @font-face {
+            font-family: FontAwesome;
+            src: url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.eot?v=4.4.0%27);
+            src: url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.eot?#iefix&v=4.4.0%27) format('embedded-opentype'), url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.woff2?v=4.4.0%27) format('woff2'), url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.woff?v=4.4.0%27) format('woff'), url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.ttf?v=4.4.0%27) format('truetype'), url(https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/%27../fonts/fontawesome-webfont.svg?v=4.4.0#fontawesomeregular%27) format('svg');
+            font-weight: 400;
+            font-style: normal
+        }
+        
+        .fa-times:before {
+            content: "\f00d"
+        }
+        
+        .fa-mail-forward:before {
+            content: "\f064"
+        }
     </style>
 
     <link rel="manifest" href="manifest.json">
@@ -26,6 +772,7 @@
     <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
+
 <body id="page-top" class="index">
     <!-- Navigation -->
     <nav class="navbar navbar-default navbar-fixed-top">
@@ -64,8 +811,9 @@
                     </li>
                 </ul>
             </div>
-            <!-- /.navbar-collapse --> </div>
-        </nav>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
     <!-- Header -->
     <header>
         <div class="container">
@@ -85,150 +833,133 @@
             <div class="row">
                 <div class="col-md-6 col-lg-6 text-center course-highlight">
                     <a href="https://www.udacity.com/course/app-monetization--ud518" target="_blank">
-                      <img src="imgs/app-mon-image.jpg" alt="App monetization with Jessica and Ido"
-                      title="Its full with entrepreneurship tips."/>
+                        <img src="imgs/app-mon-image.jpg" alt="App monetization with Jessica and Ido" title="Its full with entrepreneurship tips." />
                     </a>
                     <p class="large">Learn how to monetize your startup in this course on<br>
-                    <b><a href="https://www.udacity.com/course/app-monetization--ud518" target="_blank">App monetization</a></b>
+                        <b><a href="https://www.udacity.com/course/app-monetization--ud518" target="_blank">App monetization</a></b>
                     </p>
                 </div>
 
                 <div class="col-md-6 col-lg-6 text-center course-highlight">
                     <a href="https://www.udacity.com/course/building-high-conversion-web-forms--ud890" target="_blank">
-                      <img src="imgs/forms-course-image.jpg" alt="Building High Conversion Web Forms with Cam and Ido"/>
+                        <img src="imgs/forms-course-image.jpg" alt="Building High Conversion Web Forms with Cam and Ido" />
                     </a>
                     <p class="large">Learn how to <br>
-                      <b><a href="https://www.udacity.com/course/building-high-conversion-web-forms--ud890" target="_blank">build high conversion web forms</a></b>
+                        <b><a href="https://www.udacity.com/course/building-high-conversion-web-forms--ud890" target="_blank">build high conversion web forms</a></b>
                     </p>
                 </div>
 
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Talks</h2>
                     <h3 class="section-subheading text-muted">
-                        List of Talks from <a href="http://lanyrd.com/profile/greenido/" target="_blank" title="Talks I gave in the past (with videos) from around the world">Conferences</a>, <a href="https://www.youtube.com/watch?v=52QvVC5IeD0&list=PLOU2XLYxmsIJ6j7lT1xoqANWEJd-YbZqI" target="_blank">YouTube Series</a>, Google Developers Days and everything in between.
+                        List of Talks from <a href="http://lanyrd.com/profile/greenido/" target="_blank" title="Talks I gave in the past (with videos) from around the world">Conferences</a>,
+                        <a href="https://www.youtube.com/playlist?list=PLOU2XLYxmsILvfJcIASBDbgfxloFz_XsU" target="_blank">Best Practices for Actions on Google</a>,
+                        <a href="https://www.youtube.com/watch?v=52QvVC5IeD0&list=PLOU2XLYxmsIJ6j7lT1xoqANWEJd-YbZqI" target="_blank">Monitization YouTube Series</a>, Google Developers Days and everything in between.
                     </h3>
                 </div>
             </div>
-                <!-- 1 line -->
-                <div class="row text-center">
-                 <div class="col-md-4 col-lg-4">
-                      <a href="https://www.slideshare.net/greenido/actions-on-google-how-why" class="tips"
-                            title="Actions on google - how? why?"
-                            target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+            <!-- 1 line -->
+            <div class="row text-center">
+                <div class="col-md-4 col-lg-4">
+                    <a href="https://www.slideshare.net/greenido/actions-on-google-how-why" class="tips" title="Actions on google - how? why?" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-google fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             Actions On Google - How? Why?
-                             <br>(June 2017)</h4>
-                     </a>
-                     <p class="text-justify">
-                         How to develop your Assistant Apps? We covered the main aspects: API.AI, Voice UI and Assistant's tips.
-                     </p>
-                 </div>
-                 <div class="col-md-4 col-lg-4">
-                      <a href="https://codelabs.developers.google.com/codelabs/your-first-kids-action-on-google/index.html?index=..%2F..%2Findex#0" class="tips"
-                            title="Your First Assistant App - Animal Joker" target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+                        <h4 class="service-heading">
+                            Actions On Google - How? Why?
+                            <br>(June 2017)</h4>
+                    </a>
+                    <p class="text-justify">
+                        How to develop your Assistant Apps? We covered the main aspects: API.AI, Voice UI and Assistant's tips.
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="https://codelabs.developers.google.com/codelabs/your-first-kids-action-on-google/index.html?index=..%2F..%2Findex#0" class="tips" title="Your First Assistant App - Animal Joker" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-smile-o fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             Your First "Assistant App" - Animal Joker
-                             <br>(May 2017)</h4>
-                     </a>
-                     <p class="text-justify">
-                         Learn with this short codelab how to create an assistant app that will work everywhere.
-                     </p>
-                 </div>
-                 <div class="col-md-4 col-lg-4">
-                      <a href="https://codelabs.developers.google.com/codelabs/your-first-action-on-google-with-webhook/index.html?index=..%2F..%2Findex#0" class="tips"
-                            title="Your Assistant With Webhook - Bitcoin Info" target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+                        <h4 class="service-heading">
+                            Your First "Assistant App" - Animal Joker
+                            <br>(May 2017)</h4>
+                    </a>
+                    <p class="text-justify">
+                        Learn with this short codelab how to create an assistant app that will work everywhere.
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="https://codelabs.developers.google.com/codelabs/your-first-action-on-google-with-webhook/index.html?index=..%2F..%2Findex#0" class="tips" title="Your Assistant With Webhook - Bitcoin Info" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-btc fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             An App for Assistant With Webhook - Bitcoin Info
-                             <br>(May 2017)</h4>
-                     </a>
-                     <p class="text-justify">
-                         Learn how to leverage the power of your services (and servers) with this code lab.
-                     </p>
-                 </div>
-              </div>
+                        <h4 class="service-heading">
+                            An App for Assistant With Webhook - Bitcoin Info
+                            <br>(May 2017)</h4>
+                    </a>
+                    <p class="text-justify">
+                        Learn how to leverage the power of your services (and servers) with this code lab.
+                    </p>
+                </div>
+            </div>
 
-                <!-- 2 line  -->
-               <div class="row text-center">
-                 <div class="col-md-4 col-lg-4">
-                      <a href="http://www.slideshare.net/greenido/progressive-web-apps-for-startups" class="tips"
-                            title="Progressive Web Apps For Startups"
-                            target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+            <!-- 2 line  -->
+            <div class="row text-center">
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/progressive-web-apps-for-startups" class="tips" title="Progressive Web Apps For Startups" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-space-shuttle fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             Progressive Web Apps For Startups
-                             <br>(Nov 2016)</h4>
-                     </a>
-                     <p class="text-justify">
-                         What are the ways that startups can leverage the huge benefits of progressive web apps?
-                         We will cover 'startups best practices' and touch on how to leverage PWA.
-                     </p>
-                 </div>
-                 <div class="col-md-4 col-lg-4">
-                      <a href="http://www.slideshare.net/greenido/earn-more-revenue-with-firebase-and-admob" class="tips"
-                            title="Earn More Revenue With Firebase and AdMob"
-                            target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+                        <h4 class="service-heading">
+                            Progressive Web Apps For Startups
+                            <br>(Nov 2016)</h4>
+                    </a>
+                    <p class="text-justify">
+                        What are the ways that startups can leverage the huge benefits of progressive web apps? We will cover 'startups best practices' and touch on how to leverage PWA.
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/earn-more-revenue-with-firebase-and-admob" class="tips" title="Earn More Revenue With Firebase and AdMob" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-google-wallet fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             Earn More Revenue With Firebase and AdMob
-                             <br>(July 2016)</h4>
-                     </a>
-                     <p class="text-justify">
-                         how to take advantage of firebase and AdMob in order to increase your
-                         revenue stream. We will explore the major ways to monetize your apps with AdMob.
-                     </p>
-                 </div>
-                 <div class="col-md-4 col-lg-4">
-                      <a href="http://www.slideshare.net/greenido/amp-overview-yglf-2016" class="tips"
-                            title="An overview of Accelerated Mobile Pages Project - AMP!"
-                            target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+                        <h4 class="service-heading">
+                            Earn More Revenue With Firebase and AdMob
+                            <br>(July 2016)</h4>
+                    </a>
+                    <p class="text-justify">
+                        how to take advantage of firebase and AdMob in order to increase your revenue stream. We will explore the major ways to monetize your apps with AdMob.
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/amp-overview-yglf-2016" class="tips" title="An overview of Accelerated Mobile Pages Project - AMP!" target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-fighter-jet fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             An overview of Accelerated Mobile Pages Project
-                             <br>(June 2016)</h4>
-                     </a>
-                     <p class="text-justify">
-                         See how you can leverage this important open source project today in
-                         production and improve your sites' performance and the happiness of your users.
-                     </p>
-                 </div>
-              </div>
-                 <!--  3nd line-->
-              <div class="row text-center">
-                 <div class="col-md-4 col-lg-4">
-                      <a href="http://www.slideshare.net/greenido/google-innovation-101" class="tips"
-                            title="Google’s past, present and a bit of the future plus Google’s 5 principles of innovation."
-                            target="_blank">
-                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
+                        <h4 class="service-heading">
+                            An overview of Accelerated Mobile Pages Project
+                            <br>(June 2016)</h4>
+                    </a>
+                    <p class="text-justify">
+                        See how you can leverage this important open source project today in production and improve your sites' performance and the happiness of your users.
+                    </p>
+                </div>
+            </div>
+            <!--  3nd line-->
+            <div class="row text-center">
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/google-innovation-101" class="tips" title="Google’s past, present and a bit of the future plus Google’s 5 principles of innovation." target="_blank">
+                        <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                            <i class="fa fa-flask fa-stack-1x fa-inverse"></i>
                          </span>
-                         <h4 class="service-heading">
-                             Google’s 5 principles of innovation
-                             <br>(June 2016)</h4>
-                     </a>
-                     <p class="text-justify">
-                      Google’s past, present and a bit of the future plus Google’s 5 principles of innovation:
-                      Focus on the user, fail quickly, share everything, data over opinions and let people run on their dreams.
-                     </p>
-                 </div>
-                 <div class="col-md-4 col-lg-4">
-                     <a href="http://www.slideshare.net/greenido/building-a-progressive-web-app" class="tips"
-                           title="Building a Progressive Web App"
-                           target="_blank">
+                        <h4 class="service-heading">
+                            Google’s 5 principles of innovation
+                            <br>(June 2016)</h4>
+                    </a>
+                    <p class="text-justify">
+                        Google’s past, present and a bit of the future plus Google’s 5 principles of innovation: Focus on the user, fail quickly, share everything, data over opinions and let people run on their dreams.
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/building-a-progressive-web-app" class="tips" title="Building a Progressive Web App" target="_blank">
                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                           <i class="fa fa-rocket fa-stack-1x fa-inverse"></i>
                         </span>
@@ -237,14 +968,11 @@
                             <br>(March 2016)</h4>
                     </a>
                     <p class="text-justify">
-                        We have today on the web capabilities to create web apps that give users
-                        an excellent experience. From off-line first to push notification.
+                        We have today on the web capabilities to create web apps that give users an excellent experience. From off-line first to push notification.
                     </p>
-                  </div>
-                  <div class="col-md-4 col-lg-4">
-                    <a href="http://www.slideshare.net/greenido/how-to-make-more-money-on-the-web" class="tips"
-                           title="How to make (more) money on the web? (Feb 2016)"
-                           target="_blank">
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <a href="http://www.slideshare.net/greenido/how-to-make-more-money-on-the-web" class="tips" title="How to make (more) money on the web? (Feb 2016)" target="_blank">
                         <span class="fa-stack fa-4x"> <i class="fa fa-circle fa-stack-2x text-primary"></i>
                           <i class="fa fa-credit-card fa-stack-1x fa-inverse"></i>
                         </span>
@@ -253,14 +981,13 @@
                             <br>(Feb 2016)</h4>
                     </a>
                     <p class="text-justify">
-                        Any meaningful experience on the web comes with boxes that need to be
-                        filled (=forms). Learn how to improve your current forms.
+                        Any meaningful experience on the web comes with boxes that need to be filled (=forms). Learn how to improve your current forms.
                     </p>
-                  </div>
+                </div>
             </div>
 
             <div class="row text-center">
-              <a href="http://ido-green.appspot.com/RoadShow.html" class="btn btn-primary" role="button" target="_blank">More Talks</a>
+                <a href="http://ido-green.appspot.com/RoadShow.html" class="btn btn-primary" role="button" target="_blank">More Talks</a>
             </div>
         </div>
     </section>
@@ -359,8 +1086,7 @@
                 </div>
             </div>
             <div class="row text-center">
-                    <a href="http://ido-green.appspot.com/RoadShow.html#codehacking" class="btn btn-primary"
-                    role="button">More Code</a>
+                <a href="http://ido-green.appspot.com/RoadShow.html#codehacking" class="btn btn-primary" role="button">More Code</a>
             </div>
 
         </div>
@@ -390,8 +1116,7 @@
                                 </div>
                                 <div class="timeline-body">
                                     <p class="text-muted">
-                                        Started 4 startups.<br>
-                                        The last one (Farechase) was sold to Yahoo.
+                                        Started 4 startups.<br> The last one (Farechase) was sold to Yahoo.
                                     </p>
                                 </div>
                             </div>
@@ -407,8 +1132,8 @@
                                 </div>
                                 <div class="timeline-body">
                                     <p class="text-muted">
-                                        <a href="https://en.wikipedia.org/wiki/Yahoo!_Pipes">Pipes</a>
-                                        is a powerful composition tool to aggregate, manipulate, and mashup content from around the web. Like Unix pipes, simple commands can be combined together to create output that meets your needs.
+                                        <a href="https://en.wikipedia.org/wiki/Yahoo!_Pipes">Pipes</a> is a powerful composition tool to aggregate, manipulate, and mashup content from around the web. Like Unix pipes, simple commands can be combined together
+                                        to create output that meets your needs.
                                     </p>
                                 </div>
                             </div>
@@ -423,8 +1148,8 @@
                                 </div>
                                 <div class="timeline-body">
                                     <p class="text-muted">
-                                        <a href="https://en.wikipedia.org/wiki/High_Gear_Media" target="_blank">HighGearMedia</a>
-                                        is a next-generation automotive publisher that connects car-seeking audiences with content and tools to help them make better decisions.
+                                        <a href="https://en.wikipedia.org/wiki/High_Gear_Media" target="_blank">HighGearMedia</a> is a next-generation automotive publisher that connects car-seeking audiences with content and tools to help them make better
+                                        decisions.
                                     </p>
                                 </div>
                             </div>
@@ -439,7 +1164,8 @@
                                 </div>
                                 <div class="timeline-body">
                                     <p class="text-muted">
-                                        I was the first developer advocate for ChromeOS. Later, I was a Solution Architect at Google Cloud. These days, I'm focusing on web <a href="https://greenido.wordpress.com/tag/monetization/">monetization</a> and <a href="https://greenido.wordpress.com/tag/startup/">startups</a>.
+                                        I was the first developer advocate for ChromeOS. Later, I was a Solution Architect at Google Cloud. These days, I'm focusing on web <a href="https://greenido.wordpress.com/tag/monetization/">monetization</a> and
+                                        <a href="https://greenido.wordpress.com/tag/startup/">startups</a>.
                                     </p>
                                 </div>
                             </div>
@@ -466,12 +1192,9 @@
                 <div class="col-sm-3"></div>
                 <div class="col-sm-6">
                     <div class="team-member">
-                        <a
-                        href="http://www.amazon.com/gp/product/1449322131/ref=as_li_ss_il?ie=UTF8&tag=mybuwa-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=1449322131" target="_blank">
+                        <a href="http://www.amazon.com/gp/product/1449322131/ref=as_li_ss_il?ie=UTF8&tag=mybuwa-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=1449322131" target="_blank">
                             <h4>Multithreaded Programs in JavaScript</h4>
-                            <img style="img-responsive img-circle" border="0"
-                        src="img/book.jpeg"
-                        alt="Web Workers: Multithreaded Programs in JavaScript. Make your web application run faster." />
+                            <img style="img-responsive img-circle" border="0" src="img/book.jpeg" alt="Web Workers: Multithreaded Programs in JavaScript. Make your web application run faster." />
                         </a>
                     </div>
                 </div>
@@ -530,9 +1253,8 @@
                     <div class="col-md-6 col-md-offset-4">
                         <div class="modal-body">
                             <h2>Views 2 Remember</h2>
-                            <img src="img/portfolio/views2rem.png" class="img-responsive" alt="views to remember - mobile web app"/>
-                            <a href="https://views2remember.appspot.com" target="_blank"
-                            class="btn btn-xl" role="button">
+                            <img src="img/portfolio/views2rem.png" class="img-responsive" alt="views to remember - mobile web app" />
+                            <a href="https://views2remember.appspot.com" target="_blank" class="btn btn-xl" role="button">
                                 <i class="fa fa-mail-forward"></i>Open
                             </a>
                             <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
@@ -558,10 +1280,8 @@
                     <div class="col-md-6 col-md-offset-4">
                         <div class="modal-body">
                             <h2>Alerts IL</h2>
-                            <img src="img/portfolio/alerts-il.png" class="img-responsive"
-                            alt="Alerts (Tzeva Adom) and news from Israel - mobile web app"/>
-                            <a href="https://alerts-il.appspot.com" target="_blank"
-                        class="btn btn-xl" role="button">
+                            <img src="img/portfolio/alerts-il.png" class="img-responsive" alt="Alerts (Tzeva Adom) and news from Israel - mobile web app" />
+                            <a href="https://alerts-il.appspot.com" target="_blank" class="btn btn-xl" role="button">
                                 <i class="fa fa-mail-forward"></i>Open
                             </a>
                             <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
@@ -588,10 +1308,9 @@
                         <div class="modal-body">
                             <!-- Project Details Go Here -->
                             <h2>Time Tracker</h2>
-                            <img src="img/portfolio/time-tracker.png" class="img-responsive" alt="time tracker web app - both in hebrew and english"/>
+                            <img src="img/portfolio/time-tracker.png" class="img-responsive" alt="time tracker web app - both in hebrew and english" />
 
-                            <a href="http://ido-green.appspot.com/html5timetracker/index.html" target="_blank"
-                        class="btn btn-xl" role="button">
+                            <a href="http://ido-green.appspot.com/html5timetracker/index.html" target="_blank" class="btn btn-xl" role="button">
                                 <i class="fa fa-mail-forward"></i>Open
                             </a>
 
@@ -619,10 +1338,9 @@
                         <div class="modal-body">
                             <!-- Project Details Go Here -->
                             <h2>WebRTC Example</h2>
-                            <img src="img/portfolio/webrtc-ex.png" class="img-responsive" alt="webrtc example"/>
+                            <img src="img/portfolio/webrtc-ex.png" class="img-responsive" alt="webrtc example" />
 
-                            <a href="http://ido-green.appspot.com/getUserMedia-hello-world.html" target="_blank"
-                        class="btn btn-xl" role="button">
+                            <a href="http://ido-green.appspot.com/getUserMedia-hello-world.html" target="_blank" class="btn btn-xl" role="button">
                                 <i class="fa fa-mail-forward"></i>Open
                             </a>
                             <button type="button" class="btn btn-xl btn-close" data-dismiss="modal">
@@ -719,10 +1437,17 @@
 
     <!-- GA -->
     <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        (function(i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function() {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
         ga('create', 'UA-27750723-1', 'auto');
         ga('require', 'displayfeatures');
         ga('send', 'pageview');
@@ -730,4 +1455,5 @@
 
 </body>
 <!-- v3.4 -->
+
 </html>
