@@ -10,3 +10,5 @@ dist/
 Web-Workers-Examples/
 
 israel-air/
+
+.vscode/launch.json

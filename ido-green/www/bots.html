@@ -857,10 +857,10 @@
                 <div class="col-lg-12">
                     <h2>Best Practices for Actions on Google</h2>
                     <div class="col-lg-6">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/3NIopUsI4ik" frameborder="0" allowfullscreen></iframe>
+                        <iframe class="yt-video" width="560" height="315" src="https://www.youtube.com/embed/3NIopUsI4ik" frameborder="0" allowfullscreen></iframe>
                     </div>
                     <div class="col-lg-6">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ykSFAs6S_Kg" frameborder="0" allowfullscreen></iframe>
+                        <iframe class="yt-video" width="560" height="315" src="https://www.youtube.com/embed/ykSFAs6S_Kg" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>
@@ -954,6 +954,7 @@
             // Ugly. But this will work until G-slides will improve their embedding feature.
             var slidesWidth = $(window).width() - 100;
             if (slidesWidth < 900) {
+                $(".yt-video").css('width', slidesWidth+50); // for youtube videos
                 $("#s-idea").css('width', slidesWidth);
                 $("#s-product").css('width', slidesWidth);
                 $("#s-team").css('width', slidesWidth);
