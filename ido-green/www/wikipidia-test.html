@@ -1,0 +1,177 @@
+<html>
+<!-- Playing with Wikipida API - live version: https://codepen.io/greenido/pen/gGBXBO -->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ido Green (Developer Advocate At Google) projets, demos and presentations">
+  <meta name="author" content="Ido Green | greenido.wordpress.com | @greenido">
+  <title>IPlaying with Wikipida API</title>
+
+  <style>
+    body {
+      background-color: #2c3e50;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #random {
+      width: 170px;
+      align-self: center;
+    }
+
+    #title {
+      color: #f7f7f7;
+      align-self: center;
+      margin-top: 20px;
+      text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    hr {
+      border: 0;
+      height: 3px;
+      width: 35%;
+      background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(189, 195, 199, .6), rgba(0, 0, 0, 0));
+      align-self: center;
+    }
+
+    #random {
+      font-size: 18px;
+      background-color: transparent;
+      border-color: transparent;
+      color: white;
+      padding: 5px;
+      font-weight: 700;
+    }
+
+    input {
+      align-self: center;
+      padding-left: 8px;
+      color: white;
+      min-width: 20%;
+      height: 40px;
+      border-radius: 10px;
+      border-style: solid;
+      border-color: #e67e22;
+      background-color: #2c3e50;
+    }
+
+    input:hover {
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    i {
+      color: white;
+      margin-left: 5px;
+    }
+
+    section {
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      margin: 10% auto;
+    }
+
+    .results {
+      display: flex;
+      flex-direction: column;
+      align-self: center;
+      margin-top: 50px;
+      width: 90vw;
+    }
+
+    .wiki-results {
+      padding: 10px;
+      margin: 10px;
+      align-self: center;
+      width: 90%;
+      border-radius: 3px;
+      background-color: #f7f7f7;
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    a {
+      font-size: 25px;
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: none;
+      text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    @media screen and (max-width: 956px) {
+      .wiki-results {
+        width: 100%;
+      }
+
+      hr {
+        width: 80%;
+      }
+
+      section {
+        margin: 10% auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2 id="title">Wikipidia Viewer</h2>
+  <hr>
+  <section>
+    <a id="random" href="https://en.wikipedia.org/wiki/Special:Random" target="_blank">Pick an article.
+      <i class="fa fa-search" aria-hidden="true"></i>
+    </a>
+
+    <input id="user_entry" type="text" name="search" placeholder="search...">
+    <div class="results"></div>
+  </section>
+</body>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function () {
+
+    // Get an article: https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvsection=0&titles=trail_running&format=json
+    // TODO:
+
+
+    //
+    // Wikipidia api call: https://www.mediawiki.org/wiki/API:Opensearch
+    //
+    $(document).keypress(function findWiki(keyPressed) {
+        var wikiSearch_Url = "https://en.wikipedia.org/w/api.php?action=opensearch&search=";
+        var r_Wikicall = "list=random&rnnamespace=0&rnlimit=10"
+        var user_entry = $('#user_entry').val();
+        var wikiSearch_cb = "&format=json&callback=?";
+        var url = wikiSearch_Url + user_entry + wikiSearch_cb;
+        var html = "";
+
+
+        //If Enter/Return/Go pressed will make a call to wikipidia API
+        if (keyPressed.which == 13) {
+          $.getJSON(wikiSearch_Url + user_entry + wikiSearch_cb, function (data) {
+            /* This code iterates through the array and post the results while there are.*/
+            var i = 0;
+            console.log("Got back: " + data);
+            while (i < data[1].length) {
+              html += ('<div class="wiki-results"> ' + '<a href=' + data[3][i] + ' target="_blank">' + data[1]
+                [i] + '</a>' + '<br>' + data[2][i] + '</div>');
+              i++;
+              $('.results').html(html);
+            }
+
+          })
+          //$("#user_entry").val(""); // Clears input box for next search.
+
+        }
+
+      } //keypress func.
+
+    )
+  }); //Document Ready.
+</script>
+
+</html>
