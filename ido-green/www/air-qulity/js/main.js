@@ -112,7 +112,7 @@ function getAQI(zipcode) {
 
     // update the last update div
     var lastUpdate = getLastUpdate(htmlData);
-    $("#last_update").html("<h5>Update At " + lastUpdate + "</h5>")
+    $("#last_update").html("<p>Update At " + lastUpdate + "<p>")
   });
 }
 
