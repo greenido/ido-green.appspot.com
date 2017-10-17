@@ -5,19 +5,19 @@ var classNames = [
   },
   {
     className: "yellow",
-    title: "OK"
+    title: "Moderate"
   },
   {
     className: "orange",
-    title: "Ugly"
+    title: "Unhealthy<br>for<br>Sensitive"
   },
   {
     className: "purple",
-    title: "Yikes!"
+    title: "Unhealthy"
   },
   {
     className: "red",
-    title: "Bad!"
+    title: "Very<br>Unhealthy!"
   }
 ];
 
