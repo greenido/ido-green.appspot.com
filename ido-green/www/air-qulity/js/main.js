@@ -106,9 +106,28 @@ function getAQI(zipcode) {
           console.log("Could not find a match to airIndex: " + airInx);
           break;
     }
+    // Update the gauge with the AQI
     svg.className = "gauge " + classNames[normalizeVal].className;
     title.innerHTML = classNames[normalizeVal].title + "<br><small>" + airInx + "</small>";
+
+    // update the last update div
+    var lastUpdate = getLastUpdate(htmlData);
+    $("#last_update").html("<h5>Update At " + lastUpdate + "</h5>")
   });
+}
+
+//
+//
+//
+function getLastUpdate(htmlData) {
+  var inx1 = htmlData.indexOf('class="aq8"') + 12;
+  var inx2 = htmlData.indexOf('<', inx1);
+  var lastUpdate = htmlData.substr(inx1 , (inx2 - inx1));
+  if (lastUpdate.length < 7) {
+    console.log("Could not get the last update. Got: " + lastUpdate);
+    return "N/A";
+  }
+  return lastUpdate;
 }
 
 //
