@@ -80,6 +80,11 @@ function getAQI(zipcode) {
   $.get("proxy.php?url=" + htmlPage, function(data) {
     //console.log("===got from proxy airNow: " + JSON.stringify(data.contents));
     var htmlData = data.contents;
+    if (htmlData === undefined || htmlData === null) {
+      $("#last_update").html("<p>Could not fetch info! Sorry.</p>")
+      return null;
+    }
+    
     var inx1 = htmlData.indexOf('South Central Bay');
     var inx2 = htmlData.indexOf('ftemp-y', inx1 + 10) + 9;
     var inx3 = htmlData.indexOf('<', inx2);
@@ -112,7 +117,7 @@ function getAQI(zipcode) {
 
     // update the last update div
     var lastUpdate = getLastUpdate(htmlData);
-    $("#last_update").html("<p>Update At " + lastUpdate + "<p>")
+    $("#last_update").html("<p>Update At " + lastUpdate + "</p>")
   });
 }
 

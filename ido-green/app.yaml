@@ -12,3 +12,10 @@ handlers:
   static_files: www/\1
   upload: www/(.*)
 
+- url: /air-qulity/(.+\.php)
+  script: www/air-qulity/\1
+
+- url: /air-qulity/(.*)
+  static_files: www/air-qulity/\1
+  upload: www/air-qulity/(.*)
+
