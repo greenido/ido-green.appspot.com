@@ -2,7 +2,7 @@
 /**
 * @author Ido Green | @greenido
 * @date 4/2017
-* @see 
+* @see an early example to zcash AoG
 */
 
 //
