@@ -5,7 +5,6 @@
 * @see an early example to zcash AoG
 */
 
-//
 // Entry point to all the different request that this webhook will get
 //
 function processMessage($update) {
