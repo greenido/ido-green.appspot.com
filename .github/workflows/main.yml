@@ -10,4 +10,6 @@ jobs:
     steps:
     - uses: actions/gcloud@master
     - name: upload to app engine
-      run: gcloud app deploy --project ido-green
+      run: |
+      cd ido-green 
+      gcloud app deploy --project ido-green
