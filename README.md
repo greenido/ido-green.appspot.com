@@ -6,6 +6,7 @@ My projects, demos and other fun stuff
 
 - Bootstrap
 - [Font-Awesome](http://fortawesome.github.io/Font-Awesome/icons/#web-application)
+- https://fontawesome.com/v4.7.0/icons/
 - http://fontawesome.io/icons/
 
 ## Bugs and Issues
