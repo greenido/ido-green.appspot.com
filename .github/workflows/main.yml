@@ -4,7 +4,7 @@ on: [push]
 
 jobs: 
     steps:
-    - uses: https://github.com/greenido/gcloud/actions/gcloud@master
-    - env: 
+    - uses: greenido/gcloud/actions/gcloud@master
+    - env: app deploy --project ido-green
     - name: upload to app engine
       run: cd ido-green && gcloud app deploy --project ido-green
