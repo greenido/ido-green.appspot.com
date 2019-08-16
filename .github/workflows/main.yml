@@ -3,6 +3,6 @@ on: [push]
 jobs: 
     steps:
     - name: upload to app engine
-      uses: greenido/gcloud/actions/gcloud@master
+      uses: actions/greenido/gcloud@master
       env: app deploy --project ido-green
     - run: cd ./ido-green && gcloud app deploy --project ido-green
