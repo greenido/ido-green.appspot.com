@@ -1,10 +1,8 @@
 name: push to GAE
-
 on: [push]
-
 jobs: 
     steps:
-    - uses: greenido/gcloud/actions/gcloud@master
-    - env: app deploy --project ido-green
     - name: upload to app engine
-      run: cd ido-green && gcloud app deploy --project ido-green
+      uses: greenido/gcloud/actions/gcloud@master
+      env: app deploy --project ido-green
+    - run: cd ./ido-green && gcloud app deploy --project ido-green
