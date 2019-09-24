@@ -1,3 +1,3 @@
 echo "👀 Running some smoke tests - Be happy!"
-cd ../ido-green/tests/
+cd $HOME/tests/
 npm run test
