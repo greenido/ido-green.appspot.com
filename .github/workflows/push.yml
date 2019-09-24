@@ -1,0 +1,10 @@
+on: push
+name: push tests
+jobs:
+  test:
+    name: Run smoke tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Smoke Tests
+      uses: skx/github-action-tester@master
