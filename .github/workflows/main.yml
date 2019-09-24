@@ -1,9 +1,1 @@
-name: push to GAE
-on: [push]
-jobs: 
-  deploy_job:
-    steps:
-      - name: Deploy to GAE
-        uses: actions/greenido/gcloud@master
-        env: app deploy --project ido-green
-      - run: cd ./ido-green && gcloud app deploy --project ido-green
+
