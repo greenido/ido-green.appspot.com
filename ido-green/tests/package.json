@@ -1,0 +1,17 @@
+{
+  "name": "ido-green-tests",
+  "version": "1.0.0",
+  "description": "Testing the basic stuff on the website: ido-green.appspot.com",
+  "main": "sum.js",
+  "dependencies": {
+    "jest": "^24.9.0"
+  },
+  "devDependencies": {
+    "jest-puppeteer": "^4.3.0"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Ido Green",
+  "license": "MIT"
+}
