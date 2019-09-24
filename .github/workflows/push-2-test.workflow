@@ -1,7 +1,8 @@
 workflow "New testing day" {
-  on = "push"
   resolves = ["Jest"]
+  on = "push"
 }
+
 action "Jest" {
   uses = "stefanoeb/jest-action@master"
 }
