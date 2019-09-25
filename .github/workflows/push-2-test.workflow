@@ -1,4 +1,4 @@
-workflow "New workflow" {
+workflow "Test workflow" {
   on = "push"
   resolves = ["Jest"]
 }
