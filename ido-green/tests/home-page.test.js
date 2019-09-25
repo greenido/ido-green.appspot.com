@@ -1,3 +1,4 @@
+// Testing the home pahe 🔔
 describe('main-page', () => {
   beforeAll(async () => {
     await page.goto('https://ido-green.appspot.com');
