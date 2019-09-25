@@ -4,10 +4,10 @@
   "description": "Testing the basic stuff on the website: ido-green.appspot.com",
   "main": "sum.js",
   "dependencies": {
-    "jest": "^24.9.0",
     "puppeteer": "^1.20.0"
   },
   "devDependencies": {
+    "jest": "^24.9.0",
     "jest-puppeteer": "^4.3.0"
   },
   "jest": {

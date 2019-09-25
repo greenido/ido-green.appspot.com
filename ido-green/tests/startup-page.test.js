@@ -1,4 +1,5 @@
 describe('startup-page', () => {
+  jest.setTimeout(30000);
   beforeAll(async () => {
     await page.goto('https://ido-green.appspot.com/startups.html');
   });
