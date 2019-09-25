@@ -3,7 +3,7 @@
 My projects, demos and other fun stuff
 
 ## Tech Stack
-
+- Jest for *smoke tests* -- Check the automation with each push at: https://github.com/greenido/ido-green.appspot.com/actions
 - Bootstrap
 - [Font-Awesome](http://fortawesome.github.io/Font-Awesome/icons/#web-application)
 - https://fontawesome.com/v4.7.0/icons/ -- http://fontawesome.io/icons/
