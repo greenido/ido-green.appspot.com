@@ -21,7 +21,9 @@ Have a bug or an issue with this theme? [Open a new issue](https://github.com/gr
 ## Misc 
 
 ```
- gcloud app deploy --project theProjectID
+ gcloud app deploy app.yaml --project theProjectID
+
+ npm run --prefix tests/ test
 ```
 
 [![Analytics](https://ga-beacon.appspot.com/UA-65622529-1/ido-green.appspot.com/main)](https://github.com/igrigorik/ga-beacon)
