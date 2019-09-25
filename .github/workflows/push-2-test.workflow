@@ -1,11 +1,9 @@
-workflow "Test my code" {
+workflow "New workflow" {
   on = "push"
-  resolves = ["npm test"]
+  resolves = ["Jest"]
 }
 
-action "npm test" {
-  needs = "npm ci"
-  uses = "docker://node:alpine"
-  runs = "npm"
-  args = "test"
+action "Jest" {
+  uses = "stefanoeb/jest-action@master"
+  args = "**.test.js --ci"
 }
