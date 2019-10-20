@@ -1,3 +1,7 @@
+//
+// Testing the 'startups' page 🔔
+// TODO: a better test to the content in it, check few of the slides.
+//
 describe('startup-page', () => {
   jest.setTimeout(30000);
   beforeAll(async () => {

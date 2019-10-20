@@ -1,4 +1,7 @@
-// Testing the home pahe 🔔
+//
+// Testing the home page 🔔
+// TODO: a better test to the content in it.
+//
 describe('main-page', () => {
   beforeAll(async () => {
     await page.goto('https://ido-green.appspot.com');
