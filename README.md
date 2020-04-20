@@ -26,4 +26,3 @@ Have a bug or an issue with this theme? [Open a new issue](https://github.com/gr
  npm run --prefix tests/ test
 ```
 
-[![Analytics](https://ga-beacon.appspot.com/UA-65622529-1/ido-green.appspot.com/main)](https://github.com/igrigorik/ga-beacon)
