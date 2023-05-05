@@ -21,7 +21,7 @@ Have a bug or an issue with this theme? [Open a new issue](https://github.com/gr
 ## Misc 👌🏼
 
 ```
- gcloud app deploy app.yaml --project theProjectID
+ gcloud app deploy app.yaml --project theProjectID  --verbosity=debug
 
  npm run --prefix tests/ test
 ```
