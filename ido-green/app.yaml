@@ -1,6 +1,5 @@
-runtime: php55
+runtime: php81
 api_version: 1
-threadsafe: true
 
 handlers:
 - url: /
