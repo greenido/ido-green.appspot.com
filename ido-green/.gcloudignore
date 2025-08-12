@@ -15,3 +15,8 @@
 
 # PHP Composer dependencies:
 /vendor/
+
+node_modules/
+tests/
+*.log
+*.tmp
