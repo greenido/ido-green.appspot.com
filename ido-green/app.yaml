@@ -1,4 +1,4 @@
-runtime: php81
+runtime: php83  # Upgraded from php81 due to end-of-support on 2025-12-31. If php83 is not yet available in App Engine Standard, downgrade this to php82.
 
 handlers:
 - url: /
