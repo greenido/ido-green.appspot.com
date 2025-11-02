@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        #videoContainer {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        video, canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.stop {
+            background: #f44336;
+        }
+        button.stop:hover {
+            background: #da190b;
+        }
+        #log {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #4CAF50;
+            padding-left: 10px;
+        }
+        .log-error {
+            border-left-color: #f44336;
+            color: #ff6b6b;
+        }
+        .log-warn {
+            border-left-color: #ff9800;
+            color: #ffd93d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Camera & Canvas Test</h1>
+    <p>This page tests camera access and canvas rendering</p>
+    
+    <div>
+        <button id="startBtn">Start Camera</button>
+        <button id="stopBtn" class="stop">Stop Camera</button>
+        <button id="clearBtn">Clear Log</button>
+    </div>
+    
+    <div id="videoContainer">
+        <video id="video" autoplay playsinline muted style="position: absolute; opacity: 0.01;"></video>
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <h2>Console Log:</h2>
+    <div id="log"></div>
+    
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const logDiv = document.getElementById('log');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        let stream = null;
+        let animationId = null;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (type === 'error' ? ' log-error' : type === 'warn' ? ' log-warn' : '');
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Also log to console
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        async function startCamera() {
+            try {
+                log('Requesting camera access...');
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                
+                log(`Camera stream obtained: ${stream.id}`);
+                const tracks = stream.getVideoTracks();
+                log(`Video tracks: ${tracks.length}`);
+                tracks.forEach(track => {
+                    log(`- Track: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                });
+                
+                video.srcObject = stream;
+                log('Video srcObject set');
+                
+                video.addEventListener('loadedmetadata', () => {
+                    log(`Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`);
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    log(`Canvas size set: ${canvas.width}x${canvas.height}`);
+                });
+                
+                await video.play();
+                log(`Video playing, readyState: ${video.readyState}`);
+                
+                // Start drawing loop
+                let frameCount = 0;
+                const drawLoop = () => {
+                    if (!stream) {
+                        log('Stream ended, stopping draw loop');
+                        return;
+                    }
+                    
+                    if (video.readyState >= 2) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        // Draw frame counter
+                        ctx.fillStyle = 'lime';
+                        ctx.font = '20px Arial';
+                        ctx.fillText(`Frame: ${frameCount}`, 10, 30);
+                        
+                        if (frameCount % 60 === 0) {
+                            log(`Drawing frame ${frameCount}`);
+                        }
+                        frameCount++;
+                    } else {
+                        log(`Video not ready, readyState: ${video.readyState}`, 'warn');
+                    }
+                    
+                    animationId = requestAnimationFrame(drawLoop);
+                };
+                
+                log('Starting draw loop...');
+                drawLoop();
+                
+            } catch (err) {
+                log(`ERROR: ${err.name} - ${err.message}`, 'error');
+                console.error(err);
+            }
+        }
+        
+        function stopCamera() {
+            log('Stopping camera...');
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                log('Animation frame cancelled');
+            }
+            
+            if (stream) {
+                stream.getTracks().forEach(track => {
+                    log(`Stopping track: ${track.label}`);
+                    track.stop();
+                });
+                stream = null;
+            }
+            
+            video.srcObject = null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            log('Camera stopped');
+        }
+        
+        function clearLog() {
+            logDiv.innerHTML = '';
+            log('Log cleared');
+        }
+        
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        clearBtn.addEventListener('click', clearLog);
+        
+        log('Camera test page loaded. Click "Start Camera" to begin.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pull-Ups Challenge Tracker</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons (CDN alternative) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- MediaPipe for pose detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        
+        // Icon components (using Lucide icons)
+        const Camera = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <circle cx={12} cy={13} r={3} />
+            </svg>
+        );
+
+        const Plus = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <line x1={12} y1={5} x2={12} y2={19} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                <line x1={5} y1={12} x2={19} y2={12} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            </svg>
+        );
+
+        const Minus = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <line x1={5} y1={12} x2={19} y2={12} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            </svg>
+        );
+
+        const Users = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+        );
+
+        const Trophy = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+        );
+
+        const Play = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <polygon points="5,3 19,12 5,21" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            </svg>
+        );
+
+        const Pause = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x={6} y={4} width={4} height={16} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                <rect x={14} y={4} width={4} height={16} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            </svg>
+        );
+
+        function PullUpTracker() {
+            const [players, setPlayers] = useState([]);
+            const [newPlayerName, setNewPlayerName] = useState('');
+            const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+            const [isTracking, setIsTracking] = useState(false);
+            const [showCamera, setShowCamera] = useState(false);
+            const [cameraError, setCameraError] = useState('');
+            const [hasPermission, setHasPermission] = useState(false);
+            const [isDetecting, setIsDetecting] = useState(false);
+            const [detectionStatus, setDetectionStatus] = useState('');
+            const [pullUpState, setPullUpState] = useState('down'); // 'down', 'up', 'transitioning'
+            const [lastPullUpTime, setLastPullUpTime] = useState(0);
+            const videoRef = useRef(null);
+            const canvasRef = useRef(null);
+            const streamRef = useRef(null);
+            const poseRef = useRef(null);
+            const cameraRef = useRef(null);
+
+            useEffect(() => {
+                // Initialize MediaPipe Pose
+                console.log('[Init] Initializing application...');
+                console.log('[Init] MediaPipe Pose available:', !!window.Pose);
+                console.log('[Init] MediaPipe Camera available:', !!window.Camera);
+                
+                if (window.Pose) {
+                    console.log('[Init] Creating Pose instance...');
+                    poseRef.current = new window.Pose({
+                        locateFile: (file) => {
+                            console.log('[Init] Loading MediaPipe file:', file);
+                            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+                        }
+                    });
+                    
+                    poseRef.current.setOptions({
+                        modelComplexity: 1,
+                        smoothLandmarks: true,
+                        enableSegmentation: false,
+                        smoothSegmentation: false,
+                        minDetectionConfidence: 0.5,
+                        minTrackingConfidence: 0.5
+                    });
+                    
+                    poseRef.current.onResults(onPoseResults);
+                    console.log('[Init] Pose instance configured');
+                } else {
+                    console.warn('[Init] MediaPipe Pose not available!');
+                }
+
+                return () => {
+                    console.log('[Init] Cleaning up...');
+                    if (streamRef.current) {
+                        streamRef.current.getTracks().forEach(track => track.stop());
+                    }
+                    if (cameraRef.current) {
+                        cameraRef.current.stop();
+                    }
+                };
+            }, []);
+
+            const requestCameraPermission = async () => {
+                try {
+                    setCameraError('');
+                    console.log('[Camera] Requesting camera permission...');
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'user' } 
+                    });
+                    
+                    console.log('[Camera] Camera permission granted', stream);
+                    console.log('[Camera] Video tracks:', stream.getVideoTracks());
+                    setHasPermission(true);
+                    
+                    // Stop the stream for now, we'll start it again when user clicks start
+                    stream.getTracks().forEach(track => {
+                        console.log('[Camera] Stopping temp track:', track.label);
+                        track.stop();
+                    });
+                } catch (err) {
+                    console.error('[Camera] Permission error:', err);
+                    setHasPermission(false);
+                    
+                    if (err.name === 'NotAllowedError') {
+                        setCameraError('Camera access was denied. Please click the button below to grant permission.');
+                    } else if (err.name === 'NotFoundError') {
+                        setCameraError('No camera found on this device.');
+                    } else if (err.name === 'NotReadableError') {
+                        setCameraError('Camera is already in use by another application.');
+                    } else {
+                        setCameraError('Unable to access camera: ' + err.message);
+                    }
+                }
+            };
+
+            const onPoseResults = (results) => {
+                if (!canvasRef.current || !videoRef.current || !showCamera || !isDetecting) {
+                    return;
+                }
+                
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const video = videoRef.current;
+                
+                // Draw video frame first
+                if (video.readyState >= 2) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                }
+                
+                // Add pose landmarks if available
+                if (results.poseLandmarks) {
+                    try {
+                        drawPoseLandmarks(ctx, results.poseLandmarks);
+                        detectPullUp(results.poseLandmarks);
+                    } catch (err) {
+                        console.error('[Pose] Detection error:', err);
+                    }
+                }
+            };
+
+            const drawPoseLandmarks = (ctx, landmarks) => {
+                // Draw key points for pull-up detection
+                const keyPoints = [11, 12, 13, 14, 15, 16]; // Shoulders, elbows, wrists
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                
+                keyPoints.forEach(index => {
+                    if (landmarks[index]) {
+                        const x = landmarks[index].x * canvasRef.current.width;
+                        const y = landmarks[index].y * canvasRef.current.height;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                });
+                
+                // Draw connections between key points
+                const connections = [
+                    [11, 13], [13, 15], // Left arm
+                    [12, 14], [14, 16], // Right arm
+                    [11, 12] // Shoulders
+                ];
+                
+                connections.forEach(([start, end]) => {
+                    if (landmarks[start] && landmarks[end]) {
+                        const startX = landmarks[start].x * canvasRef.current.width;
+                        const startY = landmarks[start].y * canvasRef.current.height;
+                        const endX = landmarks[end].x * canvasRef.current.width;
+                        const endY = landmarks[end].y * canvasRef.current.height;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(endX, endY);
+                        ctx.stroke();
+                    }
+                });
+            };
+
+            const detectPullUp = (landmarks) => {
+                if (!landmarks[11] || !landmarks[12] || !landmarks[15] || !landmarks[16]) {
+                    console.log('[Detection] Missing key landmarks');
+                    return;
+                }
+                
+                // Get shoulder and wrist positions
+                const leftShoulder = landmarks[11];
+                const rightShoulder = landmarks[12];
+                const leftWrist = landmarks[15];
+                const rightWrist = landmarks[16];
+                
+                // Calculate average shoulder and wrist heights
+                const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+                const wristY = (leftWrist.y + rightWrist.y) / 2;
+                
+                console.log('[Detection] Shoulder Y:', shoulderY.toFixed(3), 'Wrist Y:', wristY.toFixed(3), 'State:', pullUpState);
+                
+                // Determine if person is in "up" or "down" position
+                const threshold = 0.1; // Adjust based on testing
+                const isUp = wristY < shoulderY - threshold;
+                const isDown = wristY > shoulderY + threshold;
+                
+                console.log('[Detection] isUp:', isUp, 'isDown:', isDown);
+                
+                const currentTime = Date.now();
+                
+                if (pullUpState === 'down' && isUp) {
+                    setPullUpState('up');
+                    console.log('[Detection] ✓ Transitioned to UP position');
+                    setDetectionStatus('Pull-up detected! 🎉');
+                } else if (pullUpState === 'up' && isDown) {
+                    setPullUpState('down');
+                    console.log('[Detection] ✓ Transitioned to DOWN position');
+                    
+                    // Only count if enough time has passed since last pull-up
+                    if (currentTime - lastPullUpTime > 2000) { // 2 second cooldown
+                        incrementScore(currentPlayerIndex);
+                        setLastPullUpTime(currentTime);
+                        console.log('[Detection] ✓✓ PULL-UP COMPLETED! +1 point');
+                        setDetectionStatus('Pull-up completed! +1 point');
+                        
+                        // Clear status after 2 seconds
+                        setTimeout(() => setDetectionStatus(''), 2000);
+                    } else {
+                        console.log('[Detection] Cooldown active, not counting');
+                    }
+                }
+            };
+
+            const startCamera = async () => {
+                try {
+                    setCameraError('');
+                    console.log('[Camera] Starting camera...');
+                    
+                    // IMPORTANT: Show camera UI FIRST before doing anything else
+                    setShowCamera(true);
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'user',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        } 
+                    });
+                    
+                    console.log('[Camera] Stream obtained:', stream.id);
+                    const tracks = stream.getVideoTracks();
+                    console.log('[Camera] Video tracks:', tracks.length);
+                    tracks.forEach(track => {
+                        console.log(`[Camera] Track: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                    });
+                    
+                    if (videoRef.current && canvasRef.current) {
+                        streamRef.current = stream;
+                        videoRef.current.srcObject = stream;
+                        console.log('[Camera] Video srcObject set');
+                        
+                        // Set up metadata handler
+                        videoRef.current.addEventListener('loadedmetadata', () => {
+                            const videoWidth = videoRef.current.videoWidth || 640;
+                            const videoHeight = videoRef.current.videoHeight || 480;
+                            
+                            console.log(`[Camera] Video metadata loaded: ${videoWidth}x${videoHeight}`);
+                            canvasRef.current.width = videoWidth;
+                            canvasRef.current.height = videoHeight;
+                            console.log(`[Camera] Canvas size set: ${canvasRef.current.width}x${canvasRef.current.height}`);
+                        });
+                        
+                        // Play video
+                        await videoRef.current.play();
+                        console.log(`[Camera] Video playing, readyState: ${videoRef.current.readyState}`);
+                        
+                        // Start drawing loop - exactly like camera-test.html
+                        let frameCount = 0;
+                        let isDrawing = true;
+                        
+                        const drawLoop = () => {
+                            if (!isDrawing || !streamRef.current) {
+                                console.log('[Canvas] Drawing loop stopped');
+                                return;
+                            }
+                            
+                            const canvas = canvasRef.current;
+                            const ctx = canvas.getContext('2d');
+                            const video = videoRef.current;
+                            
+                            if (video && video.readyState >= 2) {
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                
+                                // Draw frame counter for debugging
+                                ctx.fillStyle = 'lime';
+                                ctx.font = '20px Arial';
+                                ctx.fillText(`Frame: ${frameCount}`, 10, 30);
+                                
+                                if (frameCount % 60 === 0) {
+                                    console.log(`[Canvas] Drawing frame ${frameCount}`);
+                                }
+                                frameCount++;
+                            } else if (frameCount === 0) {
+                                console.log(`[Canvas] Video not ready, readyState: ${video ? video.readyState : 'no video'}`);
+                            }
+                            
+                            requestAnimationFrame(drawLoop);
+                        };
+                        
+                        // Store the stop function
+                        if (!window.cameraLoops) window.cameraLoops = [];
+                        window.cameraLoops.push(() => { isDrawing = false; });
+                        
+                        console.log('[Camera] Starting draw loop...');
+                        drawLoop();
+                        
+                        // Initialize pose detection after drawing starts
+                        setTimeout(() => {
+                            if (poseRef.current && window.Camera) {
+                                try {
+                                    console.log('[MediaPipe] Initializing pose detection...');
+                                    const videoWidth = videoRef.current.videoWidth || 640;
+                                    const videoHeight = videoRef.current.videoHeight || 480;
+                                    
+                                    cameraRef.current = new window.Camera(videoRef.current, {
+                                        onFrame: async () => {
+                                            if (poseRef.current && isDetecting && videoRef.current.readyState >= 2) {
+                                                await poseRef.current.send({image: videoRef.current});
+                                            }
+                                        },
+                                        width: videoWidth,
+                                        height: videoHeight
+                                    });
+                                    cameraRef.current.start();
+                                    console.log('[MediaPipe] Pose detection initialized successfully');
+                                    setDetectionStatus('Pose detection ready');
+                                } catch (poseErr) {
+                                    console.error('[MediaPipe] Pose detection failed:', poseErr);
+                                    setDetectionStatus('Camera active (manual counting only)');
+                                }
+                            } else {
+                                console.warn('[MediaPipe] Not available - using manual counting only');
+                                setDetectionStatus('Camera active (manual counting only)');
+                            }
+                        }, 1000);
+                    }
+                } catch (err) {
+                    console.error('[Camera] Start error:', err.name, err.message);
+                    setCameraError(`Failed to start camera: ${err.message}`);
+                    setShowCamera(false);
+                }
+            };
+
+            const stopCamera = () => {
+                console.log('[Camera] Stopping camera...');
+                
+                // Stop drawing loops
+                if (window.cameraLoops) {
+                    window.cameraLoops.forEach(stopFn => stopFn());
+                    window.cameraLoops = [];
+                    console.log('[Camera] Drawing loops stopped');
+                }
+                
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => {
+                        console.log('[Camera] Stopping track:', track.label);
+                        track.stop();
+                    });
+                    streamRef.current = null;
+                }
+                if (cameraRef.current) {
+                    console.log('[Camera] Stopping MediaPipe camera');
+                    cameraRef.current.stop();
+                    cameraRef.current = null;
+                }
+                
+                console.log('[Camera] Camera stopped');
+                setShowCamera(false);
+                setIsDetecting(false);
+                setDetectionStatus('');
+            };
+
+            const addPlayer = () => {
+                if (newPlayerName.trim()) {
+                    const newPlayer = { name: newPlayerName.trim(), score: 0, sets: [] };
+                    console.log('[Players] Adding player:', newPlayer.name);
+                    setPlayers([...players, newPlayer]);
+                    setNewPlayerName('');
+                }
+            };
+
+            const removePlayer = (index) => {
+                console.log('[Players] Removing player:', players[index]?.name);
+                setPlayers(players.filter((_, i) => i !== index));
+                if (currentPlayerIndex >= players.length - 1) {
+                    setCurrentPlayerIndex(Math.max(0, players.length - 2));
+                }
+            };
+
+            const incrementScore = (index) => {
+                const updated = [...players];
+                updated[index].score += 1;
+                console.log('[Score] Incrementing score for', updated[index].name, 'to', updated[index].score);
+                setPlayers(updated);
+            };
+
+            const decrementScore = (index) => {
+                const updated = [...players];
+                updated[index].score = Math.max(0, updated[index].score - 1);
+                console.log('[Score] Decrementing score for', updated[index].name, 'to', updated[index].score);
+                setPlayers(updated);
+            };
+
+            const startTracking = () => {
+                if (players.length === 0) {
+                    alert('Add players first!');
+                    return;
+                }
+                
+                console.log('[Tracking] Starting tracking mode');
+                console.log('[Tracking] Current player:', players[currentPlayerIndex]?.name);
+                console.log('[Tracking] Has permission:', hasPermission);
+                
+                setIsTracking(true);
+                setIsDetecting(true);
+                setDetectionStatus('Starting pose detection...');
+                
+                if (!hasPermission) {
+                    console.log('[Tracking] Requesting camera permission first...');
+                    requestCameraPermission().then(() => {
+                        if (hasPermission) {
+                            console.log('[Tracking] Permission granted, starting camera');
+                            startCamera();
+                        } else {
+                            console.log('[Tracking] Permission denied');
+                        }
+                    });
+                } else {
+                    console.log('[Tracking] Permission already granted, starting camera');
+                    startCamera();
+                }
+            };
+
+            const stopTracking = () => {
+                console.log('[Tracking] Stopping tracking mode');
+                setIsTracking(false);
+                setIsDetecting(false);
+                stopCamera();
+            };
+
+            const toggleDetection = () => {
+                console.log('[Detection] Toggling detection from', isDetecting, 'to', !isDetecting);
+                setIsDetecting(!isDetecting);
+                if (!isDetecting) {
+                    setDetectionStatus('Auto-detection enabled');
+                    console.log('[Detection] Auto-detection enabled');
+                } else {
+                    setDetectionStatus('Auto-detection paused');
+                    console.log('[Detection] Auto-detection paused');
+                }
+            };
+
+            const nextPlayer = () => {
+                const newIndex = (currentPlayerIndex + 1) % players.length;
+                console.log('[Players] Switching to next player:', players[newIndex]?.name, 'index:', newIndex);
+                setCurrentPlayerIndex(newIndex);
+            };
+
+            const previousPlayer = () => {
+                const newIndex = (currentPlayerIndex - 1 + players.length) % players.length;
+                console.log('[Players] Switching to previous player:', players[newIndex]?.name, 'index:', newIndex);
+                setCurrentPlayerIndex(newIndex);
+            };
+
+            const resetScores = () => {
+                console.log('[Players] Resetting all scores');
+                setPlayers(players.map(p => ({ ...p, score: 0, sets: [] })));
+            };
+
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-4">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h1 className="text-5xl font-bold text-white mb-2 flex items-center justify-center gap-3">
+                                <Trophy className="text-yellow-400" size={48} />
+                                Pull-Ups Challenge
+                            </h1>
+                            <p className="text-blue-200">Track your team's performance!</p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Left Panel - Camera and Current Player */}
+                            <div className="space-y-4">
+                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Camera size={24} />
+                                        Live Tracking
+                                    </h2>
+                                    
+                                    <div className="bg-black/30 rounded-xl overflow-hidden mb-4 aspect-video flex items-center justify-center relative">
+                                        {showCamera ? (
+                                            <div className="relative w-full h-full">
+                                                <video 
+                                                    ref={videoRef} 
+                                                    autoPlay 
+                                                    playsInline
+                                                    muted
+                                                    className="absolute top-0 left-0 w-full h-full object-cover"
+                                                    style={{opacity: 0.01, pointerEvents: 'none'}}
+                                                />
+                                                <canvas 
+                                                    ref={canvasRef}
+                                                    className="absolute top-0 left-0 w-full h-full object-cover"
+                                                />
+                                                {detectionStatus && (
+                                                    <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm z-10">
+                                                        {detectionStatus}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                                    <div className={`w-3 h-3 rounded-full ${isDetecting ? 'bg-green-400' : 'bg-red-400'}`} />
+                                                    <span className="text-white text-sm">
+                                                        {isDetecting ? 'Detecting' : 'Paused'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-white/50 text-center p-8">
+                                                <Camera size={64} className="mx-auto mb-4" />
+                                                {cameraError ? (
+                                                    <div>
+                                                        <p className="text-red-400 mb-2">{cameraError}</p>
+                                                        <button
+                                                            onClick={requestCameraPermission}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mt-2 transition"
+                                                        >
+                                                            Grant Camera Permission
+                                                        </button>
+                                                    </div>
+                                                ) : hasPermission ? (
+                                                    <p>Camera ready. Click "Start Tracking" to begin.</p>
+                                                ) : (
+                                                    <div>
+                                                        <p className="mb-4">Camera access required to track pull-ups</p>
+                                                        <button
+                                                            onClick={requestCameraPermission}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition font-bold"
+                                                        >
+                                                            Enable Camera
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {players.length > 0 && (
+                                        <div className="space-y-4">
+                                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-6 text-white">
+                                                <p className="text-sm opacity-80 mb-1">Now Performing</p>
+                                                <h3 className="text-3xl font-bold mb-4">{players[currentPlayerIndex]?.name}</h3>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm opacity-80">Current Score</p>
+                                                        <p className="text-4xl font-bold">{players[currentPlayerIndex]?.score}</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => decrementScore(currentPlayerIndex)}
+                                                            className="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition"
+                                                        >
+                                                            <Minus size={24} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => incrementScore(currentPlayerIndex)}
+                                                            className="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition"
+                                                        >
+                                                            <Plus size={24} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={previousPlayer}
+                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition"
+                                                >
+                                                    ← Previous
+                                                </button>
+                                                <button
+                                                    onClick={nextPlayer}
+                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition"
+                                                >
+                                                    Next →
+                                                </button>
+                                            </div>
+
+                                            {showCamera && (
+                                                <button
+                                                    onClick={toggleDetection}
+                                                    className={`w-full py-3 rounded-lg font-bold transition ${
+                                                        isDetecting 
+                                                            ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                    }`}
+                                                >
+                                                    {isDetecting ? 'Pause Auto-Detection' : 'Resume Auto-Detection'}
+                                                </button>
+                                            )}
+
+                                            {!isTracking ? (
+                                                <button
+                                                    onClick={startTracking}
+                                                    className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition"
+                                                >
+                                                    <Play size={24} />
+                                                    Start Tracking
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={stopTracking}
+                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition"
+                                                >
+                                                    <Pause size={24} />
+                                                    Stop Tracking
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Right Panel - Players and Leaderboard */}
+                            <div className="space-y-4">
+                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Users size={24} />
+                                        Add Players
+                                    </h2>
+                                    
+                                    <div className="flex gap-2 mb-4">
+                                        <input
+                                            type="text"
+                                            value={newPlayerName}
+                                            onChange={(e) => setNewPlayerName(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
+                                            placeholder="Enter player name"
+                                            className="flex-1 bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                        />
+                                        <button
+                                            onClick={addPlayer}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold transition"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+
+                                    {players.length > 0 && (
+                                        <button
+                                            onClick={resetScores}
+                                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-bold transition mb-4"
+                                        >
+                                            Reset All Scores
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Trophy size={24} className="text-yellow-400" />
+                                        Leaderboard
+                                    </h2>
+                                    
+                                    {players.length === 0 ? (
+                                        <p className="text-white/50 text-center py-8">No players yet. Add some to get started!</p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {sortedPlayers.map((player, index) => {
+                                                const originalIndex = players.findIndex(p => p.name === player.name);
+                                                const isCurrentPlayer = originalIndex === currentPlayerIndex;
+                                                
+                                                return (
+                                                    <div
+                                                        key={player.name}
+                                                        className={`p-4 rounded-xl flex items-center justify-between transition ${
+                                                            isCurrentPlayer 
+                                                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 ring-2 ring-yellow-400' 
+                                                                : 'bg-white/10 hover:bg-white/20'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                                                                index === 0 ? 'bg-yellow-400 text-black' :
+                                                                index === 1 ? 'bg-gray-300 text-black' :
+                                                                index === 2 ? 'bg-orange-400 text-black' :
+                                                                'bg-white/20 text-white'
+                                                            }`}>
+                                                                {index + 1}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-white font-bold">{player.name}</p>
+                                                                {isCurrentPlayer && (
+                                                                    <p className="text-xs text-yellow-300">Currently performing</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-2xl font-bold text-white">{player.score}</span>
+                                                            <button
+                                                                onClick={() => removePlayer(originalIndex)}
+                                                                className="text-red-400 hover:text-red-300 transition"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app using React 18 createRoot API
+        if (ReactDOM.createRoot) {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<PullUpTracker />);
+        } else {
+            // Fallback for older React versions
+            ReactDOM.render(<PullUpTracker />, document.getElementById('root'));
+        }
+    </script>
+</body>
+</html>

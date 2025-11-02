@@ -1,0 +1,28 @@
+{
+  "name": "pullups-challenge-tracker",
+  "version": "1.0.0",
+  "description": "A React-based web application for tracking pull-ups performance with live camera integration",
+  "main": "serve-static.js",
+  "scripts": {
+    "start": "node serve-static.js",
+    "serve": "python -m http.server 8000",
+    "dev": "python -m http.server 8080"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "keywords": [
+    "react",
+    "fitness",
+    "pullups",
+    "tracking",
+    "camera",
+    "static-site"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/greenido/ido-green.appspot.com"
+  }
+}
