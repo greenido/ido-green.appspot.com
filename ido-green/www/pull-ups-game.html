@@ -200,6 +200,22 @@
                     try {
                         drawPoseLandmarks(ctx, results.poseLandmarks);
                         detectPullUp(results.poseLandmarks);
+                        
+                        // Draw pullup counter on canvas
+                        if (players.length > 0 && players[currentPlayerIndex]) {
+                            ctx.save();
+                            ctx.font = 'bold 48px Arial';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 4;
+                            ctx.textAlign = 'right';
+                            const counterText = `Pull-ups: ${players[currentPlayerIndex].score}`;
+                            const textX = canvas.width - 20;
+                            const textY = 60;
+                            ctx.strokeText(counterText, textX, textY);
+                            ctx.fillText(counterText, textX, textY);
+                            ctx.restore();
+                        }
                     } catch (err) {
                         console.error('[Pose] Detection error:', err);
                     }
@@ -207,6 +223,53 @@
             };
 
             const drawPoseLandmarks = (ctx, landmarks) => {
+                const canvas = canvasRef.current;
+                
+                // Calculate bounding box for the person
+                let minX = canvas.width, minY = canvas.height;
+                let maxX = 0, maxY = 0;
+                
+                landmarks.forEach(landmark => {
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x);
+                    maxY = Math.max(maxY, y);
+                });
+                
+                // Add padding to the bounding box
+                const padding = 20;
+                minX = Math.max(0, minX - padding);
+                minY = Math.max(0, minY - padding);
+                maxX = Math.min(canvas.width, maxX + padding);
+                maxY = Math.min(canvas.height, maxY + padding);
+                
+                // Draw bounding box with glow effect
+                const boxWidth = maxX - minX;
+                const boxHeight = maxY - minY;
+                
+                // Outer glow
+                ctx.shadowColor = pullUpState === 'up' ? '#00ff00' : '#00aaff';
+                ctx.shadowBlur = 20;
+                ctx.strokeStyle = pullUpState === 'up' ? '#00ff00' : '#00aaff';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(minX, minY, boxWidth, boxHeight);
+                
+                // Inner line
+                ctx.shadowBlur = 0;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(minX, minY, boxWidth, boxHeight);
+                
+                // Draw label at top of box
+                const label = pullUpState === 'up' ? '↑ UP' : '↓ DOWN';
+                ctx.fillStyle = pullUpState === 'up' ? '#00ff00' : '#00aaff';
+                ctx.font = 'bold 24px Arial';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(label, minX + 10, minY - 10);
+                ctx.shadowBlur = 0;
+                
                 // Draw key points for pull-up detection
                 const keyPoints = [11, 12, 13, 14, 15, 16]; // Shoulders, elbows, wrists
                 
@@ -216,12 +279,20 @@
                 
                 keyPoints.forEach(index => {
                     if (landmarks[index]) {
-                        const x = landmarks[index].x * canvasRef.current.width;
-                        const y = landmarks[index].y * canvasRef.current.height;
+                        const x = landmarks[index].x * canvas.width;
+                        const y = landmarks[index].y * canvas.height;
                         
+                        // Larger circles for better visibility
                         ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        ctx.arc(x, y, 8, 0, 2 * Math.PI);
                         ctx.fill();
+                        
+                        // White center
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#00ff00';
                     }
                 });
                 
@@ -232,12 +303,13 @@
                     [11, 12] // Shoulders
                 ];
                 
+                ctx.lineWidth = 3;
                 connections.forEach(([start, end]) => {
                     if (landmarks[start] && landmarks[end]) {
-                        const startX = landmarks[start].x * canvasRef.current.width;
-                        const startY = landmarks[start].y * canvasRef.current.height;
-                        const endX = landmarks[end].x * canvasRef.current.width;
-                        const endY = landmarks[end].y * canvasRef.current.height;
+                        const startX = landmarks[start].x * canvas.width;
+                        const startY = landmarks[start].y * canvas.height;
+                        const endX = landmarks[end].x * canvas.width;
+                        const endY = landmarks[end].y * canvas.height;
                         
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
@@ -248,46 +320,87 @@
             };
 
             const detectPullUp = (landmarks) => {
-                if (!landmarks[11] || !landmarks[12] || !landmarks[15] || !landmarks[16]) {
+                if (!landmarks[11] || !landmarks[12] || !landmarks[13] || !landmarks[14] || !landmarks[15] || !landmarks[16]) {
                     console.log('[Detection] Missing key landmarks');
                     return;
                 }
                 
-                // Get shoulder and wrist positions
+                // Get shoulder, elbow, and wrist positions
                 const leftShoulder = landmarks[11];
                 const rightShoulder = landmarks[12];
+                const leftElbow = landmarks[13];
+                const rightElbow = landmarks[14];
                 const leftWrist = landmarks[15];
                 const rightWrist = landmarks[16];
                 
-                // Calculate average shoulder and wrist heights
+                // Calculate average positions
                 const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+                const elbowY = (leftElbow.y + rightElbow.y) / 2;
                 const wristY = (leftWrist.y + rightWrist.y) / 2;
                 
-                console.log('[Detection] Shoulder Y:', shoulderY.toFixed(3), 'Wrist Y:', wristY.toFixed(3), 'State:', pullUpState);
+                // Calculate arm angles for better detection
+                const calculateAngle = (shoulder, elbow, wrist) => {
+                    const rad1 = Math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x);
+                    const rad2 = Math.atan2(wrist.y - elbow.y, wrist.x - elbow.x);
+                    let angle = Math.abs(rad1 - rad2) * (180 / Math.PI);
+                    if (angle > 180) angle = 360 - angle;
+                    return angle;
+                };
                 
-                // Determine if person is in "up" or "down" position
-                const threshold = 0.1; // Adjust based on testing
-                const isUp = wristY < shoulderY - threshold;
-                const isDown = wristY > shoulderY + threshold;
+                const leftArmAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+                const rightArmAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+                const avgArmAngle = (leftArmAngle + rightArmAngle) / 2;
                 
-                console.log('[Detection] isUp:', isUp, 'isDown:', isDown);
+                // Multi-factor detection:
+                // 1. Wrists should be above shoulders for "up" position
+                // 2. Arms should be more extended (angle closer to 180°) for "down"
+                // 3. Arms should be more bent (angle less than 90°) for "up"
+                
+                const wristAboveShoulder = wristY < shoulderY - 0.05;
+                const armsExtended = avgArmAngle > 140; // More straight = down position
+                const armsBent = avgArmAngle < 100;     // More bent = up position
+                
+                console.log('[Detection] Shoulder Y:', shoulderY.toFixed(3), 
+                           'Wrist Y:', wristY.toFixed(3), 
+                           'Avg Angle:', avgArmAngle.toFixed(1),
+                           'State:', pullUpState);
+                
+                // Determine position based on multiple factors
+                const isUp = wristAboveShoulder && armsBent;
+                const isDown = !wristAboveShoulder && armsExtended;
+                
+                console.log('[Detection] isUp:', isUp, 'isDown:', isDown, 
+                           'wristAbove:', wristAboveShoulder, 'bent:', armsBent, 'extended:', armsExtended);
                 
                 const currentTime = Date.now();
                 
+                // State machine for pull-up detection
                 if (pullUpState === 'down' && isUp) {
                     setPullUpState('up');
                     console.log('[Detection] ✓ Transitioned to UP position');
-                    setDetectionStatus('Pull-up detected! 🎉');
+                    setDetectionStatus('Up position detected! 💪');
+                    setTimeout(() => setDetectionStatus(''), 1500);
                 } else if (pullUpState === 'up' && isDown) {
                     setPullUpState('down');
                     console.log('[Detection] ✓ Transitioned to DOWN position');
                     
-                    // Only count if enough time has passed since last pull-up
-                    if (currentTime - lastPullUpTime > 2000) { // 2 second cooldown
+                    // Only count if enough time has passed since last pull-up (prevent double counting)
+                    if (currentTime - lastPullUpTime > 1000) { // 1 second cooldown
                         incrementScore(currentPlayerIndex);
                         setLastPullUpTime(currentTime);
                         console.log('[Detection] ✓✓ PULL-UP COMPLETED! +1 point');
-                        setDetectionStatus('Pull-up completed! +1 point');
+                        setDetectionStatus('✅ Pull-up completed! +1 point');
+                        
+                        // Play success feedback
+                        const ctx = canvasRef.current?.getContext('2d');
+                        if (ctx) {
+                            // Flash green border
+                            setTimeout(() => {
+                                ctx.strokeStyle = '#00ff00';
+                                ctx.lineWidth = 10;
+                                ctx.strokeRect(5, 5, canvasRef.current.width - 10, canvasRef.current.height - 10);
+                            }, 0);
+                        }
                         
                         // Clear status after 2 seconds
                         setTimeout(() => setDetectionStatus(''), 2000);
