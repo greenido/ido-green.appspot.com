@@ -106,7 +106,9 @@
             const [detectionStatus, setDetectionStatus] = useState('');
             const [pullUpState, setPullUpState] = useState('down'); // 'down', 'up', 'transitioning'
             const [lastPullUpTime, setLastPullUpTime] = useState(0);
+            const [currentArmAngle, setCurrentArmAngle] = useState(0);
             const [currentFacingMode, setCurrentFacingMode] = useState('environment'); // Default to back camera
+            const [zoomLevel, setZoomLevel] = useState(0.5); // Start at 0.5x zoom
             const videoRef = useRef(null);
             const canvasRef = useRef(null);
             const streamRef = useRef(null);
@@ -276,6 +278,7 @@
                 setIsTracking(true);
                 setIsDetecting(true);
                 setDetectionStatus('🚀 Auto-starting camera and detection...');
+                setTimeout(() => setDetectionStatus(''), 3000);
                 startCameraWithRetry();
             };
 
@@ -300,6 +303,7 @@
                         console.error('[Camera] All retry attempts exhausted');
                         setCameraError('Unable to start camera after multiple attempts. Please use manual controls or refresh the page.');
                         setDetectionStatus('❌ Auto-tracking unavailable - Use manual +/- buttons');
+                        setTimeout(() => setDetectionStatus(''), 3000);
                         setShowCamera(false);
                         setIsDetecting(false);
                     }
@@ -426,6 +430,15 @@
                             const textY = 60;
                             ctx.strokeText(counterText, textX, textY);
                             ctx.fillText(counterText, textX, textY);
+                            
+                            // Draw arm angle below counter
+                            ctx.font = 'bold 32px Arial';
+                            ctx.fillStyle = currentArmAngle > 148 ? '#00ff00' : '#ff9800';
+                            const angleY = textY + 45;
+                            const angleText = `Angle: ${Math.round(currentArmAngle)}°`;
+                            ctx.strokeText(angleText, textX, angleY);
+                            ctx.fillText(angleText, textX, angleY);
+                            
                             ctx.restore();
                         }
                     } catch (err) {
@@ -483,7 +496,7 @@
                 ctx.shadowBlur = 0;
                 
                 // Draw key points for pull-up detection
-                const keyPoints = [11, 12, 13, 14, 15, 16]; // Shoulders, elbows, wrists
+                const keyPoints = [0, 11, 12, 13, 14, 15, 16]; // Head/nose, Shoulders, elbows, wrists
                 
                 ctx.fillStyle = '#00ff00';
                 ctx.strokeStyle = '#00ff00';
@@ -493,6 +506,13 @@
                     if (landmarks[index]) {
                         const x = landmarks[index].x * canvas.width;
                         const y = landmarks[index].y * canvas.height;
+                        
+                        // Special color for head/nose
+                        if (index === 0) {
+                            ctx.fillStyle = '#ff00ff'; // Magenta for head
+                        } else {
+                            ctx.fillStyle = '#00ff00'; // Green for other points
+                        }
                         
                         // Larger circles for better visibility
                         ctx.beginPath();
@@ -504,7 +524,6 @@
                         ctx.beginPath();
                         ctx.arc(x, y, 4, 0, 2 * Math.PI);
                         ctx.fill();
-                        ctx.fillStyle = '#00ff00';
                     }
                 });
                 
@@ -512,7 +531,8 @@
                 const connections = [
                     [11, 13], [13, 15], // Left arm
                     [12, 14], [14, 16], // Right arm
-                    [11, 12] // Shoulders
+                    [11, 12], // Shoulders
+                    [0, 11], [0, 12]  // Head to shoulders
                 ];
                 
                 ctx.lineWidth = 3;
@@ -523,6 +543,13 @@
                         const endX = landmarks[end].x * canvas.width;
                         const endY = landmarks[end].y * canvas.height;
                         
+                        // Special color for head connections
+                        if (start === 0 || end === 0) {
+                            ctx.strokeStyle = '#ff00ff'; // Magenta for head connections
+                        } else {
+                            ctx.strokeStyle = '#00ff00'; // Green for arm connections
+                        }
+                        
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(endX, endY);
@@ -532,12 +559,14 @@
             };
 
             const detectPullUp = (landmarks) => {
-                if (!landmarks[11] || !landmarks[12] || !landmarks[13] || !landmarks[14] || !landmarks[15] || !landmarks[16]) {
+                // Check for required landmarks: nose/head (0), shoulders (11, 12), elbows (13, 14), wrists (15, 16)
+                if (!landmarks[0] || !landmarks[11] || !landmarks[12] || !landmarks[13] || !landmarks[14] || !landmarks[15] || !landmarks[16]) {
                     console.log('[Detection] Missing key landmarks');
                     return;
                 }
                 
-                // Get shoulder, elbow, and wrist positions
+                // Get key landmarks
+                const nose = landmarks[0];  // Head position (nose is a good proxy for head)
                 const leftShoulder = landmarks[11];
                 const rightShoulder = landmarks[12];
                 const leftElbow = landmarks[13];
@@ -546,8 +575,8 @@
                 const rightWrist = landmarks[16];
                 
                 // Calculate average positions
+                const headY = nose.y;
                 const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
-                const elbowY = (leftElbow.y + rightElbow.y) / 2;
                 const wristY = (leftWrist.y + rightWrist.y) / 2;
                 
                 // Calculate arm angles for better detection
@@ -563,26 +592,28 @@
                 const rightArmAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
                 const avgArmAngle = (leftArmAngle + rightArmAngle) / 2;
                 
-                // Multi-factor detection:
-                // 1. Wrists should be above shoulders for "up" position
-                // 2. Arms should be more extended (angle closer to 180°) for "down"
-                // 3. Arms should be more bent (angle less than 90°) for "up"
+                // Update current arm angle state
+                setCurrentArmAngle(avgArmAngle);
                 
-                const wristAboveShoulder = wristY < shoulderY - 0.05;
-                const armsExtended = avgArmAngle > 140; // More straight = down position
-                const armsBent = avgArmAngle < 100;     // More bent = up position
+                // NEW DETECTION LOGIC:
+                // 1. UP: Head is above wrists (head pulled up above the bar where hands are)
+                // 2. DOWN: Extended arms only (hanging position)
                 
-                console.log('[Detection] Shoulder Y:', shoulderY.toFixed(3), 
+                const headAboveWrists = headY < wristY - 0.05;  // Head is higher than wrists (lower Y value)
+                const wristsBelowShoulders = wristY > shoulderY + 0.05;  // Wrists are lower than shoulders (higher Y value)
+                const armsExtended = avgArmAngle < 30; // Arms extended: angle below 30 degrees
+                
+                console.log('[Detection] Head Y:', headY.toFixed(3), 
                            'Wrist Y:', wristY.toFixed(3), 
                            'Avg Angle:', avgArmAngle.toFixed(1),
                            'State:', pullUpState);
                 
-                // Determine position based on multiple factors
-                const isUp = wristAboveShoulder && armsBent;
-                const isDown = !wristAboveShoulder && armsExtended;
+                // Determine position based on new criteria
+                const isUp = headAboveWrists;  // Head above wrists = UP position
+                const isDown = armsExtended;  // Extended arms = DOWN position (simplified)
                 
                 console.log('[Detection] isUp:', isUp, 'isDown:', isDown, 
-                           'wristAbove:', wristAboveShoulder, 'bent:', armsBent, 'extended:', armsExtended);
+                           'headAbove:', headAboveWrists, 'extended:', armsExtended);
                 
                 const currentTime = Date.now();
                 
@@ -591,7 +622,7 @@
                     setPullUpState('up');
                     console.log('[Detection] ✓ Transitioned to UP position');
                     setDetectionStatus('Up position detected! 💪');
-                    setTimeout(() => setDetectionStatus(''), 1500);
+                    setTimeout(() => setDetectionStatus(''), 3000);
                 } else if (pullUpState === 'up' && isDown) {
                     setPullUpState('down');
                     console.log('[Detection] ✓ Transitioned to DOWN position');
@@ -614,8 +645,8 @@
                             }, 0);
                         }
                         
-                        // Clear status after 2 seconds
-                        setTimeout(() => setDetectionStatus(''), 2000);
+                        // Clear status after 3 seconds
+                        setTimeout(() => setDetectionStatus(''), 3000);
                     } else {
                         console.log('[Detection] Cooldown active, not counting');
                     }
@@ -769,7 +800,7 @@
                                         }
                                     };
                                     
-                                    // Clear the success message after a few seconds
+                                    // Clear the success message after 3 seconds
                                     setTimeout(() => {
                                         if (isDetecting) {
                                             setDetectionStatus('');
@@ -780,10 +811,12 @@
                                     console.log('[MediaPipe] Continuing with manual counting mode');
                                     cameraRef.current = null;
                                     setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons to count');
+                                    setTimeout(() => setDetectionStatus(''), 3000);
                                 }
                             } else {
                                 console.warn('[MediaPipe] Pose not available - using manual counting only');
                                 setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons to count');
+                                setTimeout(() => setDetectionStatus(''), 3000);
                             }
                         }, 1000);
                     }
@@ -799,6 +832,14 @@
                 const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
                 console.log(`[Camera] Switching camera from ${currentFacingMode} to ${newFacingMode}...`);
                 startCameraWithRetry(newFacingMode);
+            };
+
+            const zoomIn = () => {
+                setZoomLevel(prev => Math.min(prev + 0.1, 2.0)); // Max 2.0x zoom
+            };
+
+            const zoomOut = () => {
+                setZoomLevel(prev => Math.max(prev - 0.1, 0.3)); // Min 0.3x zoom
             };
 
             const stopCamera = () => {
@@ -884,6 +925,7 @@
                 setIsTracking(true);
                 setIsDetecting(true);
                 setDetectionStatus('🚀 Initializing camera and detection...');
+                setTimeout(() => setDetectionStatus(''), 3000);
                 
                 if (!hasPermission) {
                     console.log('[Tracking] Requesting camera permission first...');
@@ -913,6 +955,7 @@
                     } else {
                         setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons');
                         console.log('[Detection] MediaPipe not available, using manual mode');
+                        setTimeout(() => setDetectionStatus(''), 3000);
                     }
                 } else {
                     // Pausing detection
@@ -942,26 +985,26 @@
             const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-4">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="text-center mb-8">
-                            <h1 className="text-5xl font-bold text-white mb-2 flex items-center justify-center gap-3">
-                                <Trophy className="text-yellow-400" size={48} />
-                                Pull-Ups Challenge
+                <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
+                    <div className="w-full max-w-7xl mx-auto">
+                        <div className="text-center px-4 py-6">
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 flex items-center justify-center gap-2 sm:gap-3">
+                                <Trophy className="text-yellow-400" size={32} />
+                                <span className="inline sm:inline">Pull-Ups Challenge</span>
                             </h1>
-                            <p className="text-blue-200">Track your team's performance!</p>
+                            <p className="text-sm sm:text-base text-blue-200">Track your team's performance!</p>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* Left Panel - Camera and Current Player */}
-                            <div className="space-y-4">
-                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <Camera size={24} />
+                        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 lg:gap-6 px-0 sm:px-4">
+                            {/* Top Panel (Mobile) / Left Panel (Desktop) - Camera and Current Player */}
+                            <div className="space-y-4 order-1">
+                                <div className="bg-white/10 backdrop-blur-lg rounded-none lg:rounded-2xl p-4 sm:p-6 border-0 lg:border border-white/20">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Camera size={20} className="sm:w-6 sm:h-6" />
                                         Live Tracking
                                     </h2>
                                     
-                                    <div className="bg-black/30 rounded-xl overflow-hidden mb-4 aspect-video flex items-center justify-center relative">
+                                    <div className="bg-black/30 rounded-xl overflow-hidden mb-4 flex items-center justify-center relative w-full" style={{aspectRatio: '4/3', minHeight: '300px'}}>
                                         {showCamera ? (
                                             <div className="relative w-full h-full">
                                                 <video 
@@ -970,11 +1013,12 @@
                                                     playsInline
                                                     muted
                                                     className="absolute top-0 left-0 w-full h-full object-cover"
-                                                    style={{opacity: 0.01, pointerEvents: 'none'}}
+                                                    style={{opacity: 0.01, pointerEvents: 'none', transform: `scale(${zoomLevel})`}}
                                                 />
                                                 <canvas 
                                                     ref={canvasRef}
                                                     className="absolute top-0 left-0 w-full h-full object-cover"
+                                                    style={{transform: `scale(${zoomLevel})`}}
                                                 />
                                                 {detectionStatus && (
                                                     <div className={`absolute top-4 left-4 right-4 px-4 py-3 rounded-lg text-sm font-bold z-10 ${
@@ -987,34 +1031,53 @@
                                                         {detectionStatus}
                                                     </div>
                                                 )}
-                                                <div className="absolute top-4 right-4 flex gap-2 z-10">
-                                                    <div className={`w-3 h-3 rounded-full ${isDetecting ? 'bg-green-400' : 'bg-red-400'}`} />
-                                                    <span className="text-white text-sm">
+                                                <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-1 sm:gap-2 z-10">
+                                                    <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${isDetecting ? 'bg-green-400' : 'bg-red-400'}`} />
+                                                    <span className="text-white text-xs sm:text-sm">
                                                         {isDetecting ? 'Detecting' : 'Paused'}
                                                     </span>
                                                 </div>
+                                                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-col gap-1 sm:gap-2 z-10">
+                                                    <button
+                                                        onClick={zoomIn}
+                                                        className="bg-black/70 hover:bg-black/80 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl"
+                                                        title="Zoom In"
+                                                    >
+                                                        +
+                                                    </button>
+                                                    <div className="bg-black/70 text-white text-xs text-center py-1 px-2 rounded">
+                                                        {(zoomLevel * 100).toFixed(0)}%
+                                                    </div>
+                                                    <button
+                                                        onClick={zoomOut}
+                                                        className="bg-black/70 hover:bg-black/80 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl"
+                                                        title="Zoom Out"
+                                                    >
+                                                        −
+                                                    </button>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="text-white/50 text-center p-8">
-                                                <Camera size={64} className="mx-auto mb-4" />
+                                            <div className="text-white/50 text-center p-4 sm:p-8">
+                                                <Camera size={48} className="sm:w-16 sm:h-16 mx-auto mb-4" />
                                                 {cameraError ? (
                                                     <div>
-                                                        <p className="text-red-400 mb-2">{cameraError}</p>
+                                                        <p className="text-red-400 mb-2 text-sm sm:text-base">{cameraError}</p>
                                                         <button
                                                             onClick={requestCameraPermission}
-                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mt-2 transition"
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mt-2 transition text-sm sm:text-base"
                                                         >
                                                             Grant Camera Permission
                                                         </button>
                                                     </div>
                                                 ) : hasPermission ? (
-                                                    <p>Camera ready. Click "Start Tracking" to begin.</p>
+                                                    <p className="text-sm sm:text-base">Camera ready. Click "Start Tracking" to begin.</p>
                                                 ) : (
                                                     <div>
-                                                        <p className="mb-4">Camera access required to track pull-ups</p>
+                                                        <p className="mb-4 text-sm sm:text-base">Camera access required to track pull-ups</p>
                                                         <button
                                                             onClick={requestCameraPermission}
-                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition font-bold"
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition font-bold text-sm sm:text-base"
                                                         >
                                                             Enable Camera
                                                         </button>
@@ -1025,27 +1088,27 @@
                                     </div>
 
                                     {players.length > 0 && (
-                                        <div className="space-y-4">
-                                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-6 text-white">
-                                                <p className="text-sm opacity-80 mb-1">Now Performing</p>
-                                                <h3 className="text-3xl font-bold mb-4">{players[currentPlayerIndex]?.name}</h3>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-4 sm:p-6 text-white">
+                                                <p className="text-xs sm:text-sm opacity-80 mb-1">Now Performing</p>
+                                                <h3 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{players[currentPlayerIndex]?.name}</h3>
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <p className="text-sm opacity-80">Current Score</p>
-                                                        <p className="text-4xl font-bold">{players[currentPlayerIndex]?.score}</p>
+                                                        <p className="text-xs sm:text-sm opacity-80">Current Score</p>
+                                                        <p className="text-3xl sm:text-4xl font-bold">{players[currentPlayerIndex]?.score}</p>
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => decrementScore(currentPlayerIndex)}
-                                                            className="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition"
+                                                            className="bg-white/20 hover:bg-white/30 p-2 sm:p-3 rounded-lg transition"
                                                         >
-                                                            <Minus size={24} />
+                                                            <Minus size={20} className="sm:w-6 sm:h-6" />
                                                         </button>
                                                         <button
                                                             onClick={() => incrementScore(currentPlayerIndex)}
-                                                            className="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition"
+                                                            className="bg-white/20 hover:bg-white/30 p-2 sm:p-3 rounded-lg transition"
                                                         >
-                                                            <Plus size={24} />
+                                                            <Plus size={20} className="sm:w-6 sm:h-6" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1054,13 +1117,13 @@
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={previousPlayer}
-                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition"
+                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 sm:py-3 rounded-lg transition text-sm sm:text-base"
                                                 >
                                                     ← Previous
                                                 </button>
                                                 <button
                                                     onClick={nextPlayer}
-                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition"
+                                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 sm:py-3 rounded-lg transition text-sm sm:text-base"
                                                 >
                                                     Next →
                                                 </button>
@@ -1070,14 +1133,14 @@
                                                 <div className="space-y-2">
                                                     <button
                                                         onClick={switchCamera}
-                                                        className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
+                                                        className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 sm:py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm sm:text-base"
                                                     >
-                                                        <RefreshCw size={20} />
+                                                        <RefreshCw size={16} className="sm:w-5 sm:h-5" />
                                                         Switch to {currentFacingMode === 'environment' ? 'Front' : 'Back'} Camera
                                                     </button>
                                                     <button
                                                         onClick={toggleDetection}
-                                                        className={`w-full py-3 rounded-lg font-bold transition ${
+                                                        className={`w-full py-2 sm:py-3 rounded-lg font-bold transition text-sm sm:text-base ${
                                                             isDetecting 
                                                                 ? 'bg-orange-500 hover:bg-orange-600 text-white' 
                                                                 : 'bg-blue-500 hover:bg-blue-600 text-white'
@@ -1091,17 +1154,17 @@
                                             {!isTracking ? (
                                                 <button
                                                     onClick={startTracking}
-                                                    className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition"
+                                                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition"
                                                 >
-                                                    <Play size={24} />
+                                                    <Play size={20} className="sm:w-6 sm:h-6" />
                                                     Start Tracking
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={stopTracking}
-                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition"
+                                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition"
                                                 >
-                                                    <Pause size={24} />
+                                                    <Pause size={20} className="sm:w-6 sm:h-6" />
                                                     Stop Tracking
                                                 </button>
                                             )}
@@ -1110,11 +1173,11 @@
                                 </div>
                             </div>
 
-                            {/* Right Panel - Players and Leaderboard */}
-                            <div className="space-y-4">
-                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <Users size={24} />
+                            {/* Bottom Panel (Mobile) / Right Panel (Desktop) - Players and Leaderboard */}
+                            <div className="space-y-4 order-2">
+                                <div className="bg-white/10 backdrop-blur-lg rounded-none lg:rounded-2xl p-4 sm:p-6 border-0 lg:border border-white/20">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Users size={20} className="sm:w-6 sm:h-6" />
                                         Add Players
                                     </h2>
                                     
@@ -1125,11 +1188,11 @@
                                             onChange={(e) => setNewPlayerName(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
                                             placeholder="Enter player name"
-                                            className="flex-1 bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                            className="flex-1 bg-white/20 border border-white/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
                                         />
                                         <button
                                             onClick={addPlayer}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold transition"
+                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition text-sm sm:text-base"
                                         >
                                             Add
                                         </button>
@@ -1139,7 +1202,7 @@
                                         <div className="space-y-2">
                                             <button
                                                 onClick={resetScores}
-                                                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-bold transition"
+                                                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-bold transition text-sm sm:text-base"
                                             >
                                                 Reset All Scores
                                             </button>
@@ -1150,7 +1213,7 @@
                                                         clearSavedPlayers();
                                                     }
                                                 }}
-                                                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold transition"
+                                                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold transition text-sm sm:text-base"
                                             >
                                                 Clear All Players
                                             </button>
@@ -1158,22 +1221,22 @@
                                     )}
                                     
                                     {players.length === 0 && (
-                                        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mt-4">
-                                            <p className="text-yellow-200 text-sm text-center">
+                                        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 sm:p-4 mt-4">
+                                            <p className="text-yellow-200 text-xs sm:text-sm text-center">
                                                 📝 <strong>Tip:</strong> Add player names first! They will be saved automatically.
                                             </p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <Trophy size={24} className="text-yellow-400" />
+                                <div className="bg-white/10 backdrop-blur-lg rounded-none lg:rounded-2xl p-4 sm:p-6 border-0 lg:border border-white/20">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Trophy size={20} className="text-yellow-400 sm:w-6 sm:h-6" />
                                         Leaderboard
                                     </h2>
                                     
                                     {players.length === 0 ? (
-                                        <p className="text-white/50 text-center py-8">No players yet. Add some to get started!</p>
+                                        <p className="text-white/50 text-center py-6 sm:py-8 text-sm sm:text-base">No players yet. Add some to get started!</p>
                                     ) : (
                                         <div className="space-y-2">
                                             {sortedPlayers.map((player, index) => {
@@ -1183,14 +1246,14 @@
                                                 return (
                                                     <div
                                                         key={player.name}
-                                                        className={`p-4 rounded-xl flex items-center justify-between transition ${
+                                                        className={`p-3 sm:p-4 rounded-xl flex items-center justify-between transition ${
                                                             isCurrentPlayer 
                                                                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 ring-2 ring-yellow-400' 
                                                                 : 'bg-white/10 hover:bg-white/20'
                                                         }`}
                                                     >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                                                        <div className="flex items-center gap-3 sm:gap-4">
+                                                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${
                                                                 index === 0 ? 'bg-yellow-400 text-black' :
                                                                 index === 1 ? 'bg-gray-300 text-black' :
                                                                 index === 2 ? 'bg-orange-400 text-black' :
@@ -1199,17 +1262,17 @@
                                                                 {index + 1}
                                                             </div>
                                                             <div>
-                                                                <p className="text-white font-bold">{player.name}</p>
+                                                                <p className="text-white font-bold text-sm sm:text-base">{player.name}</p>
                                                                 {isCurrentPlayer && (
                                                                     <p className="text-xs text-yellow-300">Currently performing</p>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-2xl font-bold text-white">{player.score}</span>
+                                                        <div className="flex items-center gap-2 sm:gap-3">
+                                                            <span className="text-xl sm:text-2xl font-bold text-white">{player.score}</span>
                                                             <button
                                                                 onClick={() => removePlayer(originalIndex)}
-                                                                className="text-red-400 hover:text-red-300 transition"
+                                                                className="text-red-400 hover:text-red-300 transition text-lg sm:text-xl"
                                                             >
                                                                 ✕
                                                             </button>
