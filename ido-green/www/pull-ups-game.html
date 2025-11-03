@@ -439,21 +439,29 @@
                         if (players.length > 0 && players[currentPlayerIndex]) {
                             ctx.save();
                             ctx.font = 'bold 48px Arial';
-                            ctx.fillStyle = '#ffffff';
+                            ctx.fillStyle = '#FFD700'; // Gold color for count
                             ctx.strokeStyle = '#000000';
                             ctx.lineWidth = 4;
                             ctx.textAlign = 'right';
-                            const counterText = `Pull-ups: ${players[currentPlayerIndex].score}`;
+                            const counterText = `Count: ${players[currentPlayerIndex].score}`;
                             const textX = canvas.width - 20;
                             const textY = 60;
                             ctx.strokeText(counterText, textX, textY);
                             ctx.fillText(counterText, textX, textY);
                             
-                            // Draw arm angle below counter
+                            // Draw state below counter (matching camera-test.html)
                             ctx.font = 'bold 32px Arial';
-                            ctx.fillStyle = currentArmAngle > 148 ? '#00ff00' : '#ff9800';
+                            ctx.fillStyle = pullUpState === 'up' ? '#00ff00' : '#00aaff';
+                            const stateY = textY - 40;
+                            const stateText = `State: ${pullUpState.toUpperCase()}`;
+                            ctx.strokeText(stateText, textX, stateY);
+                            ctx.fillText(stateText, textX, stateY);
+                            
+                            // Draw arm angle below state (matching camera-test.html color logic)
+                            ctx.font = 'bold 28px Arial';
+                            ctx.fillStyle = currentArmAngle < 35 ? '#00ff00' : '#ff9800'; // Green when extended (<35°), orange otherwise
                             const angleY = textY + 45;
-                            const angleText = `Angle: ${Math.round(currentArmAngle)}°`;
+                            const angleText = `Arm Angle: ${currentArmAngle.toFixed(1)}°`;
                             ctx.strokeText(angleText, textX, angleY);
                             ctx.fillText(angleText, textX, angleY);
                             
@@ -613,7 +621,7 @@
                 // Update current arm angle state
                 setCurrentArmAngle(avgArmAngle);
                 
-                // NEW DETECTION LOGIC (UPDATED to match camera-test.html):
+                // NEW DETECTION LOGIC (matching camera-test.html):
                 // 1. UP: Head is above wrists (head pulled up above the bar where hands are)
                 // 2. DOWN: Extended arms only (hanging position)
                 
@@ -635,7 +643,7 @@
                 
                 const currentTime = Date.now();
                 
-                // State machine for pull-up detection
+                // State machine for pull-up detection (matching camera-test.html)
                 if (pullUpState === 'down' && isUp) {
                     setPullUpState('up');
                     console.log('[Detection] ✓ Transitioned to UP position');
@@ -646,7 +654,7 @@
                     console.log('[Detection] ✓ Transitioned to DOWN position');
                     
                     // Only count if enough time has passed since last pull-up (prevent double counting)
-                    if (currentTime - lastPullUpTime > 1000) { // 1 second cooldown
+                    if (currentTime - lastPullUpTime > 300) { // 300ms cooldown (matching camera-test.html)
                         incrementScore(currentPlayerIndex);
                         setLastPullUpTime(currentTime);
                         console.log('[Detection] ✓✓ PULL-UP COMPLETED! +1 point');
