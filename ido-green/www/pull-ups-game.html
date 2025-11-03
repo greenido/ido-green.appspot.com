@@ -433,9 +433,39 @@
                 if (results.poseLandmarks) {
                     try {
                         drawPoseLandmarks(ctx, results.poseLandmarks);
-                        detectPullUp(results.poseLandmarks);
+                        const detectionResult = detectPullUp(results.poseLandmarks);
                         
-                        // Draw pullup counter on canvas
+                        // Count pull-ups on state transitions (matching camera-test.html)
+                        if (detectionResult.state !== pullUpState && detectionResult.state !== 'unknown') {
+                            const now = Date.now();
+                            // Prevent rapid state changes (debounce) - matching camera-test.html 300ms
+                            if (now - lastPullUpTime > 300) {
+                                const previousState = pullUpState;
+                                setPullUpState(detectionResult.state);
+                                setLastPullUpTime(now);
+                                
+                                // Count a rep when transitioning from 'up' to 'down'
+                                if (previousState === 'up' && detectionResult.state === 'down') {
+                                    incrementScore(currentPlayerIndex);
+                                    console.log(`[Detection] 🎯 PULL-UP #${players[currentPlayerIndex]?.score + 1} COMPLETED!`);
+                                    setDetectionStatus('✅ Pull-up completed! +1 point');
+                                    
+                                    // Play success feedback - flash green border
+                                    setTimeout(() => {
+                                        ctx.strokeStyle = '#00ff00';
+                                        ctx.lineWidth = 10;
+                                        ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+                                    }, 0);
+                                    
+                                    // Clear status after 3 seconds
+                                    setTimeout(() => setDetectionStatus(''), 3000);
+                                }
+                                
+                                console.log(`[Detection] State change: ${previousState} → ${detectionResult.state}`);
+                            }
+                        }
+                        
+                        // Draw pullup counter and stats on canvas
                         if (players.length > 0 && players[currentPlayerIndex]) {
                             ctx.save();
                             ctx.font = 'bold 48px Arial';
@@ -451,22 +481,25 @@
                             
                             // Draw state below counter (matching camera-test.html)
                             ctx.font = 'bold 32px Arial';
-                            ctx.fillStyle = pullUpState === 'up' ? '#00ff00' : '#00aaff';
+                            ctx.fillStyle = detectionResult.state === 'up' ? '#00ff00' : '#00aaff';
                             const stateY = textY - 40;
-                            const stateText = `State: ${pullUpState.toUpperCase()}`;
+                            const stateText = `State: ${detectionResult.state.toUpperCase()}`;
                             ctx.strokeText(stateText, textX, stateY);
                             ctx.fillText(stateText, textX, stateY);
                             
-                            // Draw arm angle below state (matching camera-test.html color logic)
+                            // Draw arm angle below counter (matching camera-test.html color logic)
                             ctx.font = 'bold 28px Arial';
-                            ctx.fillStyle = currentArmAngle < 35 ? '#00ff00' : '#ff9800'; // Green when extended (<35°), orange otherwise
+                            ctx.fillStyle = detectionResult.armsExtended ? '#00ff00' : '#ff9800'; // Green when extended, orange otherwise
                             const angleY = textY + 45;
-                            const angleText = `Arm Angle: ${currentArmAngle.toFixed(1)}°`;
+                            const angleText = `Arm Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`;
                             ctx.strokeText(angleText, textX, angleY);
                             ctx.fillText(angleText, textX, angleY);
                             
                             ctx.restore();
                         }
+                        
+                        // Log detection info (matching camera-test.html)
+                        console.log(`[Detection] ${detectionResult.state.toUpperCase()} | Head Y: ${detectionResult.headY.toFixed(3)} | Wrist Y: ${detectionResult.wristY.toFixed(3)} | Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`);
                     } catch (err) {
                         console.error('[Pose] Detection error:', err);
                     }
@@ -588,7 +621,18 @@
                 // Check for required landmarks: nose/head (0), shoulders (11, 12), elbows (13, 14), wrists (15, 16)
                 if (!landmarks[0] || !landmarks[11] || !landmarks[12] || !landmarks[13] || !landmarks[14] || !landmarks[15] || !landmarks[16]) {
                     console.log('[Detection] Missing key landmarks');
-                    return;
+                    return {
+                        state: 'unknown',
+                        headY: 0,
+                        shoulderY: 0,
+                        wristY: 0,
+                        avgArmAngle: 0,
+                        headAboveWrists: false,
+                        wristsBelowShoulders: false,
+                        armsExtended: false,
+                        leftArmAngle: 0,
+                        rightArmAngle: 0
+                    };
                 }
                 
                 // Get key landmarks
@@ -629,54 +673,34 @@
                 const wristsBelowShoulders = wristY > shoulderY + 0.05;  // Wrists are lower than shoulders (higher Y value)
                 const armsExtended = avgArmAngle < 35; // Arms extended: angle below 35 degrees (slightly looser)
                 
-                console.log('[Detection] Head Y:', headY.toFixed(3), 
-                           'Wrist Y:', wristY.toFixed(3), 
-                           'Avg Angle:', avgArmAngle.toFixed(1),
-                           'State:', pullUpState);
-                
                 // Determine position based on new criteria
                 const isUp = headAboveWrists;  // Head above wrists = UP position
                 const isDown = armsExtended;  // Extended arms = DOWN position (simplified)
                 
-                console.log('[Detection] isUp:', isUp, 'isDown:', isDown, 
-                           'headAbove:', headAboveWrists, 'extended:', armsExtended);
-                
-                const currentTime = Date.now();
-                
-                // State machine for pull-up detection (matching camera-test.html)
-                if (pullUpState === 'down' && isUp) {
-                    setPullUpState('up');
-                    console.log('[Detection] ✓ Transitioned to UP position');
-                    setDetectionStatus('Up position detected! 💪');
-                    setTimeout(() => setDetectionStatus(''), 3000);
-                } else if (pullUpState === 'up' && isDown) {
-                    setPullUpState('down');
-                    console.log('[Detection] ✓ Transitioned to DOWN position');
-                    
-                    // Only count if enough time has passed since last pull-up (prevent double counting)
-                    if (currentTime - lastPullUpTime > 300) { // 300ms cooldown (matching camera-test.html)
-                        incrementScore(currentPlayerIndex);
-                        setLastPullUpTime(currentTime);
-                        console.log('[Detection] ✓✓ PULL-UP COMPLETED! +1 point');
-                        setDetectionStatus('✅ Pull-up completed! +1 point');
-                        
-                        // Play success feedback
-                        const ctx = canvasRef.current?.getContext('2d');
-                        if (ctx) {
-                            // Flash green border
-                            setTimeout(() => {
-                                ctx.strokeStyle = '#00ff00';
-                                ctx.lineWidth = 10;
-                                ctx.strokeRect(5, 5, canvasRef.current.width - 10, canvasRef.current.height - 10);
-                            }, 0);
-                        }
-                        
-                        // Clear status after 3 seconds
-                        setTimeout(() => setDetectionStatus(''), 3000);
-                    } else {
-                        console.log('[Detection] Cooldown active, not counting');
-                    }
+                let state = 'unknown';
+                if (isUp) {
+                    state = 'up';
+                } else if (isDown) {
+                    state = 'down';
                 }
+                
+                console.log('[Detection] Head Y:', headY.toFixed(3), 
+                           'Wrist Y:', wristY.toFixed(3), 
+                           'Avg Angle:', avgArmAngle.toFixed(1),
+                           'State:', state);
+                
+                return {
+                    state,
+                    headY,
+                    shoulderY,
+                    wristY,
+                    avgArmAngle,
+                    headAboveWrists,
+                    wristsBelowShoulders,
+                    armsExtended,
+                    leftArmAngle,
+                    rightArmAngle
+                };
             };
 
             const startCamera = async (facingMode = 'environment') => {
@@ -1532,7 +1556,7 @@
                     {/* Version and Last Update Info */}
                     <div className="text-center px-4 py-6">
                         <p className="text-xs text-white/40">
-                            Version 1.0.0 | Last Updated: November 2, 2025
+                            Version 1.0.1 | Last Updated: November 3, 2025
                         </p>
                     </div>
                 </div>
