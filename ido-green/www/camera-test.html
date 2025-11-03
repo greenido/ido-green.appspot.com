@@ -44,6 +44,60 @@
         button.stop:hover {
             background: #da190b;
         }
+        button.secondary {
+            background: #2196F3;
+        }
+        button.secondary:hover {
+            background: #0b7dda;
+        }
+        button.warning {
+            background: #ff9800;
+        }
+        button.warning:hover {
+            background: #e68900;
+        }
+        #nameSection {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #4CAF50;
+        }
+        #nameSection.filled {
+            border-color: #2196F3;
+        }
+        .name-input-group {
+            margin: 15px 0;
+        }
+        .name-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .name-input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            background: #0f3460;
+            color: white;
+            font-size: 16px;
+        }
+        .name-input-group input:focus {
+            outline: none;
+            border-color: #45a049;
+            background: #1a5490;
+        }
+        .guidance {
+            background: #ff9800;
+            color: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
         #log {
             background: #000;
             padding: 15px;
@@ -74,8 +128,22 @@
     <h1>Camera & Canvas Test</h1>
     <p>This page tests camera access and canvas rendering</p>
     
+    <div id="nameSection">
+        <div class="guidance" id="nameGuidance">📝 Please fill in your name(s) first before starting the camera</div>
+        <div class="name-input-group">
+            <label for="userName">Your Name:</label>
+            <input type="text" id="userName" placeholder="Enter your name">
+        </div>
+        <div class="name-input-group">
+            <label for="userName2">Second Name (optional):</label>
+            <input type="text" id="userName2" placeholder="Enter second name (optional)">
+        </div>
+        <button id="clearNamesBtn" class="warning">Clear Saved Names</button>
+    </div>
+    
     <div>
-        <button id="startBtn">Start Camera</button>
+        <button id="startBtn">Start Camera (Back)</button>
+        <button id="switchBtn" class="secondary">Switch Camera</button>
         <button id="stopBtn" class="stop">Stop Camera</button>
         <button id="clearBtn">Clear Log</button>
     </div>
@@ -94,11 +162,84 @@
         const ctx = canvas.getContext('2d');
         const logDiv = document.getElementById('log');
         const startBtn = document.getElementById('startBtn');
+        const switchBtn = document.getElementById('switchBtn');
         const stopBtn = document.getElementById('stopBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const clearNamesBtn = document.getElementById('clearNamesBtn');
+        const userNameInput = document.getElementById('userName');
+        const userName2Input = document.getElementById('userName2');
+        const nameSection = document.getElementById('nameSection');
+        const nameGuidance = document.getElementById('nameGuidance');
         
         let stream = null;
         let animationId = null;
+        let currentFacingMode = 'environment'; // Default to back camera (environment)
+        
+        // Load saved names from localStorage on page load
+        function loadSavedNames() {
+            const savedName = localStorage.getItem('cameraTestUserName');
+            const savedName2 = localStorage.getItem('cameraTestUserName2');
+            
+            if (savedName) {
+                userNameInput.value = savedName;
+                log('Loaded saved name: ' + savedName);
+            }
+            if (savedName2) {
+                userName2Input.value = savedName2;
+                log('Loaded saved second name: ' + savedName2);
+            }
+            
+            updateNameSectionUI();
+        }
+        
+        // Save names to localStorage whenever they change
+        function saveNames() {
+            const name = userNameInput.value.trim();
+            const name2 = userName2Input.value.trim();
+            
+            if (name) {
+                localStorage.setItem('cameraTestUserName', name);
+                log('Saved name: ' + name);
+            } else {
+                localStorage.removeItem('cameraTestUserName');
+            }
+            
+            if (name2) {
+                localStorage.setItem('cameraTestUserName2', name2);
+                log('Saved second name: ' + name2);
+            } else {
+                localStorage.removeItem('cameraTestUserName2');
+            }
+            
+            updateNameSectionUI();
+        }
+        
+        // Clear saved names from localStorage
+        function clearSavedNames() {
+            localStorage.removeItem('cameraTestUserName');
+            localStorage.removeItem('cameraTestUserName2');
+            userNameInput.value = '';
+            userName2Input.value = '';
+            log('Cleared all saved names');
+            updateNameSectionUI();
+        }
+        
+        // Update UI based on whether names are filled
+        function updateNameSectionUI() {
+            const hasName = userNameInput.value.trim().length > 0;
+            if (hasName) {
+                nameSection.classList.add('filled');
+                nameGuidance.style.display = 'none';
+            } else {
+                nameSection.classList.remove('filled');
+                nameGuidance.style.display = 'block';
+            }
+        }
+        
+        // Listen for name input changes
+        userNameInput.addEventListener('input', saveNames);
+        userName2Input.addEventListener('input', saveNames);
+        clearNamesBtn.addEventListener('click', clearSavedNames);
         
         function log(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -112,23 +253,40 @@
             console.log(`[${timestamp}] ${message}`);
         }
         
-        async function startCamera() {
+        async function startCamera(facingMode = currentFacingMode) {
             try {
-                log('Requesting camera access...');
+                // Check if name is filled (guidance only)
+                if (!userNameInput.value.trim()) {
+                    log('⚠️ Please enter your name first!', 'warn');
+                }
                 
-                stream = await navigator.mediaDevices.getUserMedia({
+                log(`Requesting camera access (${facingMode})...`);
+                
+                // Stop existing stream if any
+                if (stream) {
+                    stopCamera();
+                }
+                
+                // Request camera with specific facing mode
+                // On mobile, 'environment' is the back camera, 'user' is the front camera
+                const constraints = {
                     video: {
-                        facingMode: 'user',
+                        facingMode: { ideal: facingMode },
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
-                });
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentFacingMode = facingMode;
                 
                 log(`Camera stream obtained: ${stream.id}`);
                 const tracks = stream.getVideoTracks();
                 log(`Video tracks: ${tracks.length}`);
                 tracks.forEach(track => {
-                    log(`- Track: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                    const settings = track.getSettings();
+                    const facing = settings.facingMode || 'unknown';
+                    log(`- Track: ${track.label}, facing: ${facing}, enabled: ${track.enabled}`);
                 });
                 
                 video.srcObject = stream;
@@ -156,10 +314,20 @@
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         
-                        // Draw frame counter
+                        // Draw user names and frame counter
                         ctx.fillStyle = 'lime';
                         ctx.font = '20px Arial';
-                        ctx.fillText(`Frame: ${frameCount}`, 10, 30);
+                        const userName = userNameInput.value.trim();
+                        const userName2 = userName2Input.value.trim();
+                        
+                        if (userName) {
+                            ctx.fillText(userName, 10, 30);
+                        }
+                        if (userName2) {
+                            ctx.fillText(userName2, 10, 60);
+                        }
+                        
+                        ctx.fillText(`Frame: ${frameCount}`, 10, canvas.height - 10);
                         
                         if (frameCount % 60 === 0) {
                             log(`Drawing frame ${frameCount}`);
@@ -179,6 +347,13 @@
                 log(`ERROR: ${err.name} - ${err.message}`, 'error');
                 console.error(err);
             }
+        }
+        
+        function switchCamera() {
+            // Toggle between front and back camera
+            const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            log(`Switching camera to ${newFacingMode}...`);
+            startCamera(newFacingMode);
         }
         
         function stopCamera() {
@@ -208,11 +383,15 @@
             log('Log cleared');
         }
         
-        startBtn.addEventListener('click', startCamera);
+        startBtn.addEventListener('click', () => startCamera('environment'));
+        switchBtn.addEventListener('click', switchCamera);
         stopBtn.addEventListener('click', stopCamera);
         clearBtn.addEventListener('click', clearLog);
         
-        log('Camera test page loaded. Click "Start Camera" to begin.');
+        // Load saved names on page load
+        loadSavedNames();
+        
+        log('Camera test page loaded. Please enter your name(s) and click "Start Camera (Back)" to begin.');
     </script>
 </body>
 </html>

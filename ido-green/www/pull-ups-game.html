@@ -87,6 +87,13 @@
             </svg>
         );
 
+        const RefreshCw = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M1 4v6h6M23 20v-6h-6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+            </svg>
+        );
+
         function PullUpTracker() {
             const [players, setPlayers] = useState([]);
             const [newPlayerName, setNewPlayerName] = useState('');
@@ -99,17 +106,23 @@
             const [detectionStatus, setDetectionStatus] = useState('');
             const [pullUpState, setPullUpState] = useState('down'); // 'down', 'up', 'transitioning'
             const [lastPullUpTime, setLastPullUpTime] = useState(0);
+            const [currentFacingMode, setCurrentFacingMode] = useState('environment'); // Default to back camera
             const videoRef = useRef(null);
             const canvasRef = useRef(null);
             const streamRef = useRef(null);
             const poseRef = useRef(null);
             const cameraRef = useRef(null);
+            const retryCountRef = useRef(0);
+            const maxRetries = 3;
 
             useEffect(() => {
                 // Initialize MediaPipe Pose
                 console.log('[Init] Initializing application...');
                 console.log('[Init] MediaPipe Pose available:', !!window.Pose);
                 console.log('[Init] MediaPipe Camera available:', !!window.Camera);
+                
+                // Load saved players from localStorage
+                loadSavedPlayers();
                 
                 if (window.Pose) {
                     console.log('[Init] Creating Pose instance...');
@@ -135,6 +148,9 @@
                     console.warn('[Init] MediaPipe Pose not available!');
                 }
 
+                // Auto-start camera and tracking on page load
+                initializeAutoStart();
+
                 return () => {
                     console.log('[Init] Cleaning up...');
                     if (streamRef.current) {
@@ -146,13 +162,203 @@
                 };
             }, []);
 
+            // Auto-start function with retry logic
+            const initializeAutoStart = async () => {
+                console.log('[AutoStart] Attempting to initialize camera and tracking...');
+                
+                try {
+                    // Check for camera permission first
+                    const permissionStatus = await checkCameraPermission();
+                    
+                    if (permissionStatus === 'granted') {
+                        console.log('[AutoStart] Camera permission already granted');
+                        setHasPermission(true);
+                        
+                        // Auto-start tracking if players exist
+                        setTimeout(() => {
+                            if (players.length > 0) {
+                                console.log('[AutoStart] Players exist, starting tracking automatically');
+                                autoStartTracking();
+                            } else {
+                                console.log('[AutoStart] No players yet, showing camera setup');
+                                startCameraWithRetry();
+                            }
+                        }, 500);
+                    } else if (permissionStatus === 'prompt') {
+                        console.log('[AutoStart] Camera permission needs to be requested');
+                        // Automatically request permission
+                        setTimeout(() => {
+                            requestCameraPermissionWithRetry();
+                        }, 1000);
+                    } else {
+                        console.log('[AutoStart] Camera permission denied');
+                        setCameraError('Camera access is required for tracking. Please grant permission and refresh the page.');
+                    }
+                } catch (err) {
+                    console.error('[AutoStart] Error checking camera permission:', err);
+                    // Try to request permission anyway
+                    setTimeout(() => {
+                        requestCameraPermissionWithRetry();
+                    }, 1000);
+                }
+            };
+
+            // Check camera permission status
+            const checkCameraPermission = async () => {
+                try {
+                    if (navigator.permissions && navigator.permissions.query) {
+                        const result = await navigator.permissions.query({ name: 'camera' });
+                        console.log('[Permission] Camera permission status:', result.state);
+                        return result.state;
+                    }
+                } catch (err) {
+                    console.log('[Permission] Could not query camera permission:', err);
+                }
+                return 'prompt';
+            };
+
+            // Request camera permission with retry logic
+            const requestCameraPermissionWithRetry = async () => {
+                retryCountRef.current = 0;
+                let success = false;
+                
+                while (retryCountRef.current < maxRetries && !success) {
+                    try {
+                        console.log(`[AutoStart] Requesting camera permission (attempt ${retryCountRef.current + 1}/${maxRetries})...`);
+                        setCameraError('');
+                        
+                        const stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { facingMode: 'environment' } 
+                        });
+                        
+                        console.log('[AutoStart] Camera permission granted');
+                        setHasPermission(true);
+                        success = true;
+                        
+                        // Stop the stream for now
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        // Start the camera and tracking
+                        setTimeout(() => {
+                            if (players.length > 0) {
+                                autoStartTracking();
+                            } else {
+                                startCameraWithRetry();
+                            }
+                        }, 500);
+                        
+                    } catch (err) {
+                        console.error(`[AutoStart] Permission request failed (attempt ${retryCountRef.current + 1}/${maxRetries}):`, err);
+                        retryCountRef.current++;
+                        
+                        if (retryCountRef.current >= maxRetries) {
+                            setHasPermission(false);
+                            if (err.name === 'NotAllowedError') {
+                                setCameraError('Camera access was denied. Please grant permission to use auto-tracking or use manual controls.');
+                            } else if (err.name === 'NotFoundError') {
+                                setCameraError('No camera found on this device. Manual controls only.');
+                            } else if (err.name === 'NotReadableError') {
+                                setCameraError('Camera is in use by another application. Close other apps and refresh.');
+                            } else {
+                                setCameraError('Camera error: ' + err.message + '. Manual controls available.');
+                            }
+                        } else {
+                            // Wait before retry
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                    }
+                }
+            };
+
+            // Auto-start tracking (only if permission granted)
+            const autoStartTracking = () => {
+                console.log('[AutoStart] Starting tracking automatically...');
+                setIsTracking(true);
+                setIsDetecting(true);
+                setDetectionStatus('🚀 Auto-starting camera and detection...');
+                startCameraWithRetry();
+            };
+
+            // Start camera with retry logic
+            const startCameraWithRetry = async (facingMode = 'environment', retryAttempt = 0) => {
+                try {
+                    console.log(`[Camera] Starting camera with retry (attempt ${retryAttempt + 1}/${maxRetries})...`);
+                    await startCamera(facingMode);
+                } catch (err) {
+                    console.error(`[Camera] Start failed (attempt ${retryAttempt + 1}/${maxRetries}):`, err);
+                    
+                    if (retryAttempt < maxRetries - 1) {
+                        // Wait and retry
+                        const delay = 2000 * (retryAttempt + 1); // Increasing delay
+                        console.log(`[Camera] Retrying in ${delay}ms...`);
+                        setDetectionStatus(`⚠️ Camera initialization failed. Retrying in ${delay/1000}s...`);
+                        
+                        setTimeout(() => {
+                            startCameraWithRetry(facingMode, retryAttempt + 1);
+                        }, delay);
+                    } else {
+                        console.error('[Camera] All retry attempts exhausted');
+                        setCameraError('Unable to start camera after multiple attempts. Please use manual controls or refresh the page.');
+                        setDetectionStatus('❌ Auto-tracking unavailable - Use manual +/- buttons');
+                        setShowCamera(false);
+                        setIsDetecting(false);
+                    }
+                }
+            };
+
+            // Load saved players from localStorage
+            const loadSavedPlayers = () => {
+                try {
+                    const savedPlayers = localStorage.getItem('pullUpGamePlayers');
+                    if (savedPlayers) {
+                        const parsedPlayers = JSON.parse(savedPlayers);
+                        // Reset scores but keep names
+                        const playersWithResetScores = parsedPlayers.map(p => ({
+                            ...p,
+                            score: 0,
+                            sets: []
+                        }));
+                        setPlayers(playersWithResetScores);
+                        console.log('[Storage] Loaded saved players:', playersWithResetScores.map(p => p.name));
+                    }
+                } catch (err) {
+                    console.error('[Storage] Error loading players:', err);
+                }
+            };
+
+            // Save players to localStorage (only names, not scores)
+            const savePlayers = (playersList) => {
+                try {
+                    // Only save names, not scores
+                    const playersToSave = playersList.map(p => ({
+                        name: p.name,
+                        score: 0,
+                        sets: []
+                    }));
+                    localStorage.setItem('pullUpGamePlayers', JSON.stringify(playersToSave));
+                    console.log('[Storage] Saved players to localStorage');
+                } catch (err) {
+                    console.error('[Storage] Error saving players:', err);
+                }
+            };
+
+            // Clear saved players from localStorage
+            const clearSavedPlayers = () => {
+                try {
+                    localStorage.removeItem('pullUpGamePlayers');
+                    console.log('[Storage] Cleared saved players from localStorage');
+                } catch (err) {
+                    console.error('[Storage] Error clearing players:', err);
+                }
+            };
+
             const requestCameraPermission = async () => {
                 try {
                     setCameraError('');
                     console.log('[Camera] Requesting camera permission...');
                     
                     const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'user' } 
+                        video: { facingMode: 'environment' } 
                     });
                     
                     console.log('[Camera] Camera permission granted', stream);
@@ -164,6 +370,12 @@
                         console.log('[Camera] Stopping temp track:', track.label);
                         track.stop();
                     });
+                    
+                    // Auto-start camera after permission is granted
+                    setTimeout(() => {
+                        startCameraWithRetry();
+                    }, 500);
+                    
                 } catch (err) {
                     console.error('[Camera] Permission error:', err);
                     setHasPermission(false);
@@ -410,27 +622,40 @@
                 }
             };
 
-            const startCamera = async () => {
+            const startCamera = async (facingMode = 'environment') => {
                 try {
                     setCameraError('');
-                    console.log('[Camera] Starting camera...');
+                    console.log(`[Camera] Starting camera with facingMode: ${facingMode}...`);
                     
                     // IMPORTANT: Show camera UI FIRST before doing anything else
                     setShowCamera(true);
                     
+                    // Stop existing stream if any
+                    if (streamRef.current) {
+                        streamRef.current.getTracks().forEach(track => track.stop());
+                        streamRef.current = null;
+                    }
+                    if (cameraRef.current) {
+                        cameraRef.current.stop();
+                        cameraRef.current = null;
+                    }
+                    
                     const stream = await navigator.mediaDevices.getUserMedia({ 
                         video: { 
-                            facingMode: 'user',
+                            facingMode: { ideal: facingMode },
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         } 
                     });
                     
-                    console.log('[Camera] Stream obtained:', stream.id);
+                    console.log(`[Camera] Stream obtained: ${stream.id}, facingMode: ${facingMode}`);
+                    setCurrentFacingMode(facingMode);
                     const tracks = stream.getVideoTracks();
                     console.log('[Camera] Video tracks:', tracks.length);
                     tracks.forEach(track => {
-                        console.log(`[Camera] Track: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                        const settings = track.getSettings();
+                        const facing = settings.facingMode || 'unknown';
+                        console.log(`[Camera] Track: ${track.label}, facing: ${facing}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
                     });
                     
                     if (videoRef.current && canvasRef.current) {
@@ -476,9 +701,9 @@
                                 ctx.font = '20px Arial';
                                 ctx.fillText(`Frame: ${frameCount}`, 10, 30);
                                 
-                                if (frameCount % 60 === 0) {
-                                    console.log(`[Canvas] Drawing frame ${frameCount}`);
-                                }
+                                // if (frameCount % 60 === 0) {
+                                //     console.log(`[Canvas] Drawing frame ${frameCount}`);
+                                // }
                                 frameCount++;
                             } else if (frameCount === 0) {
                                 console.log(`[Canvas] Video not ready, readyState: ${video ? video.readyState : 'no video'}`);
@@ -494,33 +719,71 @@
                         console.log('[Camera] Starting draw loop...');
                         drawLoop();
                         
-                        // Initialize pose detection after drawing starts
+                        // Initialize pose detection after drawing starts - use direct requestAnimationFrame approach
                         setTimeout(() => {
-                            if (poseRef.current && window.Camera) {
+                            if (poseRef.current) {
                                 try {
-                                    console.log('[MediaPipe] Initializing pose detection...');
-                                    const videoWidth = videoRef.current.videoWidth || 640;
-                                    const videoHeight = videoRef.current.videoHeight || 480;
+                                    console.log('[MediaPipe] Initializing pose detection with direct frame processing...');
                                     
-                                    cameraRef.current = new window.Camera(videoRef.current, {
-                                        onFrame: async () => {
-                                            if (poseRef.current && isDetecting && videoRef.current.readyState >= 2) {
+                                    // Use direct requestAnimationFrame approach instead of Camera utility
+                                    let poseFrameCount = 0;
+                                    let isPoseProcessing = false;
+                                    
+                                    const processPoseFrame = async () => {
+                                        if (!streamRef.current || !videoRef.current || !poseRef.current) {
+                                            console.log('[MediaPipe] Stopping pose processing - stream ended');
+                                            return;
+                                        }
+                                        
+                                        if (isDetecting && videoRef.current.readyState >= 2 && !isPoseProcessing) {
+                                            isPoseProcessing = true;
+                                            try {
                                                 await poseRef.current.send({image: videoRef.current});
+                                                poseFrameCount++;
+                                                
+                                                if (poseFrameCount % 30 === 0) {
+                                                    console.log(`[MediaPipe] Processed ${poseFrameCount} pose frames`);
+                                                }
+                                            } catch (err) {
+                                                console.warn('[MediaPipe] Frame processing error:', err);
                                             }
-                                        },
-                                        width: videoWidth,
-                                        height: videoHeight
-                                    });
-                                    cameraRef.current.start();
-                                    console.log('[MediaPipe] Pose detection initialized successfully');
-                                    setDetectionStatus('Pose detection ready');
+                                            isPoseProcessing = false;
+                                        }
+                                        
+                                        // Continue processing at ~30fps
+                                        setTimeout(() => {
+                                            requestAnimationFrame(processPoseFrame);
+                                        }, 33);
+                                    };
+                                    
+                                    // Start pose processing
+                                    processPoseFrame();
+                                    console.log('[MediaPipe] Pose detection initialized successfully (direct mode)');
+                                    setDetectionStatus('✅ Auto-detection ready! Stand in frame to start counting');
+                                    
+                                    // Store reference for cleanup
+                                    cameraRef.current = { 
+                                        stop: () => {
+                                            console.log('[MediaPipe] Stopping pose processing');
+                                            streamRef.current = null; // This will stop the processPoseFrame loop
+                                        }
+                                    };
+                                    
+                                    // Clear the success message after a few seconds
+                                    setTimeout(() => {
+                                        if (isDetecting) {
+                                            setDetectionStatus('');
+                                        }
+                                    }, 3000);
                                 } catch (poseErr) {
                                     console.error('[MediaPipe] Pose detection failed:', poseErr);
-                                    setDetectionStatus('Camera active (manual counting only)');
+                                    console.log('[MediaPipe] Continuing with manual counting mode');
+                                    cameraRef.current = null;
+                                    setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons to count');
                                 }
                             } else {
-                                console.warn('[MediaPipe] Not available - using manual counting only');
-                                setDetectionStatus('Camera active (manual counting only)');
+                                console.warn('[MediaPipe] Pose not available - using manual counting only');
+                                setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons to count');
                             }
                         }, 1000);
                     }
@@ -529,6 +792,13 @@
                     setCameraError(`Failed to start camera: ${err.message}`);
                     setShowCamera(false);
                 }
+            };
+
+            const switchCamera = () => {
+                // Toggle between front and back camera
+                const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                console.log(`[Camera] Switching camera from ${currentFacingMode} to ${newFacingMode}...`);
+                startCameraWithRetry(newFacingMode);
             };
 
             const stopCamera = () => {
@@ -549,8 +819,14 @@
                     streamRef.current = null;
                 }
                 if (cameraRef.current) {
-                    console.log('[Camera] Stopping MediaPipe camera');
-                    cameraRef.current.stop();
+                    try {
+                        console.log('[Camera] Stopping MediaPipe camera');
+                        if (typeof cameraRef.current.stop === 'function') {
+                            cameraRef.current.stop();
+                        }
+                    } catch (err) {
+                        console.warn('[Camera] Error stopping MediaPipe camera:', err);
+                    }
                     cameraRef.current = null;
                 }
                 
@@ -564,14 +840,18 @@
                 if (newPlayerName.trim()) {
                     const newPlayer = { name: newPlayerName.trim(), score: 0, sets: [] };
                     console.log('[Players] Adding player:', newPlayer.name);
-                    setPlayers([...players, newPlayer]);
+                    const updatedPlayers = [...players, newPlayer];
+                    setPlayers(updatedPlayers);
+                    savePlayers(updatedPlayers);
                     setNewPlayerName('');
                 }
             };
 
             const removePlayer = (index) => {
                 console.log('[Players] Removing player:', players[index]?.name);
-                setPlayers(players.filter((_, i) => i !== index));
+                const updatedPlayers = players.filter((_, i) => i !== index);
+                setPlayers(updatedPlayers);
+                savePlayers(updatedPlayers);
                 if (currentPlayerIndex >= players.length - 1) {
                     setCurrentPlayerIndex(Math.max(0, players.length - 2));
                 }
@@ -603,21 +883,14 @@
                 
                 setIsTracking(true);
                 setIsDetecting(true);
-                setDetectionStatus('Starting pose detection...');
+                setDetectionStatus('🚀 Initializing camera and detection...');
                 
                 if (!hasPermission) {
                     console.log('[Tracking] Requesting camera permission first...');
-                    requestCameraPermission().then(() => {
-                        if (hasPermission) {
-                            console.log('[Tracking] Permission granted, starting camera');
-                            startCamera();
-                        } else {
-                            console.log('[Tracking] Permission denied');
-                        }
-                    });
+                    requestCameraPermissionWithRetry();
                 } else {
                     console.log('[Tracking] Permission already granted, starting camera');
-                    startCamera();
+                    startCameraWithRetry('environment'); // Start with back camera and retry logic
                 }
             };
 
@@ -632,11 +905,20 @@
                 console.log('[Detection] Toggling detection from', isDetecting, 'to', !isDetecting);
                 setIsDetecting(!isDetecting);
                 if (!isDetecting) {
-                    setDetectionStatus('Auto-detection enabled');
-                    console.log('[Detection] Auto-detection enabled');
+                    // Enabling detection
+                    if (poseRef.current && cameraRef.current) {
+                        setDetectionStatus('✅ Auto-detection enabled - Ready to count!');
+                        console.log('[Detection] Auto-detection enabled with MediaPipe');
+                        setTimeout(() => setDetectionStatus(''), 3000);
+                    } else {
+                        setDetectionStatus('⚠️ Auto-detection unavailable - Please use manual +/- buttons');
+                        console.log('[Detection] MediaPipe not available, using manual mode');
+                    }
                 } else {
-                    setDetectionStatus('Auto-detection paused');
+                    // Pausing detection
+                    setDetectionStatus('⏸️ Auto-detection paused - Use manual buttons');
                     console.log('[Detection] Auto-detection paused');
+                    setTimeout(() => setDetectionStatus(''), 3000);
                 }
             };
 
@@ -695,7 +977,13 @@
                                                     className="absolute top-0 left-0 w-full h-full object-cover"
                                                 />
                                                 {detectionStatus && (
-                                                    <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm z-10">
+                                                    <div className={`absolute top-4 left-4 right-4 px-4 py-3 rounded-lg text-sm font-bold z-10 ${
+                                                        detectionStatus.includes('⚠️') 
+                                                            ? 'bg-orange-500/90 text-white' 
+                                                            : detectionStatus.includes('✅') 
+                                                            ? 'bg-green-500/90 text-white'
+                                                            : 'bg-black/70 text-white'
+                                                    }`}>
                                                         {detectionStatus}
                                                     </div>
                                                 )}
@@ -779,16 +1067,25 @@
                                             </div>
 
                                             {showCamera && (
-                                                <button
-                                                    onClick={toggleDetection}
-                                                    className={`w-full py-3 rounded-lg font-bold transition ${
-                                                        isDetecting 
-                                                            ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
-                                                    }`}
-                                                >
-                                                    {isDetecting ? 'Pause Auto-Detection' : 'Resume Auto-Detection'}
-                                                </button>
+                                                <div className="space-y-2">
+                                                    <button
+                                                        onClick={switchCamera}
+                                                        className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
+                                                    >
+                                                        <RefreshCw size={20} />
+                                                        Switch to {currentFacingMode === 'environment' ? 'Front' : 'Back'} Camera
+                                                    </button>
+                                                    <button
+                                                        onClick={toggleDetection}
+                                                        className={`w-full py-3 rounded-lg font-bold transition ${
+                                                            isDetecting 
+                                                                ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                                                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                        }`}
+                                                    >
+                                                        {isDetecting ? 'Pause Auto-Detection' : 'Resume Auto-Detection'}
+                                                    </button>
+                                                </div>
                                             )}
 
                                             {!isTracking ? (
@@ -839,12 +1136,33 @@
                                     </div>
 
                                     {players.length > 0 && (
-                                        <button
-                                            onClick={resetScores}
-                                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-bold transition mb-4"
-                                        >
-                                            Reset All Scores
-                                        </button>
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={resetScores}
+                                                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-bold transition"
+                                            >
+                                                Reset All Scores
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (window.confirm('Are you sure you want to clear all saved player names?')) {
+                                                        setPlayers([]);
+                                                        clearSavedPlayers();
+                                                    }
+                                                }}
+                                                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold transition"
+                                            >
+                                                Clear All Players
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    {players.length === 0 && (
+                                        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mt-4">
+                                            <p className="text-yellow-200 text-sm text-center">
+                                                📝 <strong>Tip:</strong> Add player names first! They will be saved automatically.
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
 
