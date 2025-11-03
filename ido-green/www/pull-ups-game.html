@@ -108,7 +108,9 @@
             const [lastPullUpTime, setLastPullUpTime] = useState(0);
             const [currentArmAngle, setCurrentArmAngle] = useState(0);
             const [currentFacingMode, setCurrentFacingMode] = useState('environment'); // Default to back camera
-            const [zoomLevel, setZoomLevel] = useState(0.5); // Start at 0.5x zoom
+            const [zoomLevel, setZoomLevel] = useState(1.0); // Start at 1.0x zoom (no zoom)
+            const [supportsZoom, setSupportsZoom] = useState(false);
+            const [zoomCapabilities, setZoomCapabilities] = useState({ min: 1, max: 1 });
             const videoRef = useRef(null);
             const canvasRef = useRef(null);
             const streamRef = useRef(null);
@@ -687,6 +689,19 @@
                         const settings = track.getSettings();
                         const facing = settings.facingMode || 'unknown';
                         console.log(`[Camera] Track: ${track.label}, facing: ${facing}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                        
+                        // Check for zoom capabilities
+                        const capabilities = track.getCapabilities();
+                        if (capabilities.zoom) {
+                            console.log('[Camera] Zoom supported! Min:', capabilities.zoom.min, 'Max:', capabilities.zoom.max, 'Step:', capabilities.zoom.step);
+                            setSupportsZoom(true);
+                            setZoomCapabilities({ min: capabilities.zoom.min, max: capabilities.zoom.max });
+                            setZoomLevel(capabilities.zoom.min); // Start at minimum zoom
+                        } else {
+                            console.log('[Camera] Native zoom not supported, using CSS transform');
+                            setSupportsZoom(false);
+                            setZoomLevel(1.0); // Start at 1.0 for CSS zoom
+                        }
                     });
                     
                     if (videoRef.current && canvasRef.current) {
@@ -834,12 +849,68 @@
                 startCameraWithRetry(newFacingMode);
             };
 
-            const zoomIn = () => {
-                setZoomLevel(prev => Math.min(prev + 0.1, 2.0)); // Max 2.0x zoom
+            // Apply zoom to the video track
+            const applyZoomToTrack = async (zoomValue) => {
+                if (!streamRef.current) return;
+                
+                const videoTrack = streamRef.current.getVideoTracks()[0];
+                if (!videoTrack) return;
+                
+                try {
+                    const capabilities = videoTrack.getCapabilities();
+                    
+                    if (capabilities.zoom) {
+                        console.log('[Zoom] Applying native camera zoom:', zoomValue);
+                        await videoTrack.applyConstraints({
+                            advanced: [{ zoom: zoomValue }]
+                        });
+                    } else {
+                        console.log('[Zoom] Native zoom not supported, using CSS transform');
+                    }
+                } catch (err) {
+                    console.warn('[Zoom] Error applying zoom:', err);
+                }
             };
 
-            const zoomOut = () => {
-                setZoomLevel(prev => Math.max(prev - 0.1, 0.3)); // Min 0.3x zoom
+            const zoomIn = async () => {
+                setZoomLevel(prev => {
+                    const newZoom = supportsZoom 
+                        ? Math.min(prev + 0.5, zoomCapabilities.max)
+                        : Math.min(prev + 0.1, 3.0); // CSS zoom can go higher
+                    
+                    if (supportsZoom) {
+                        applyZoomToTrack(newZoom);
+                    }
+                    
+                    console.log('[Zoom] Zoom in to:', newZoom);
+                    return newZoom;
+                });
+            };
+
+            const zoomOut = async () => {
+                setZoomLevel(prev => {
+                    const newZoom = supportsZoom
+                        ? Math.max(prev - 0.5, zoomCapabilities.min)
+                        : Math.max(prev - 0.1, 0.5); // Min CSS zoom
+                    
+                    if (supportsZoom) {
+                        applyZoomToTrack(newZoom);
+                    }
+                    
+                    console.log('[Zoom] Zoom out to:', newZoom);
+                    return newZoom;
+                });
+            };
+
+            const resetZoom = async () => {
+                const defaultZoom = supportsZoom ? zoomCapabilities.min : 1.0;
+                setZoomLevel(defaultZoom);
+                
+                if (supportsZoom) {
+                    applyZoomToTrack(defaultZoom);
+                }
+                
+                console.log('[Zoom] Reset zoom to:', defaultZoom);
             };
 
             const stopCamera = () => {
@@ -1013,12 +1084,18 @@
                                                     playsInline
                                                     muted
                                                     className="absolute top-0 left-0 w-full h-full object-cover"
-                                                    style={{opacity: 0.01, pointerEvents: 'none', transform: `scale(${zoomLevel})`}}
+                                                    style={{
+                                                        opacity: 0.01, 
+                                                        pointerEvents: 'none', 
+                                                        transform: supportsZoom ? 'scale(1)' : `scale(${zoomLevel})`
+                                                    }}
                                                 />
                                                 <canvas 
                                                     ref={canvasRef}
                                                     className="absolute top-0 left-0 w-full h-full object-cover"
-                                                    style={{transform: `scale(${zoomLevel})`}}
+                                                    style={{
+                                                        transform: supportsZoom ? 'scale(1)' : `scale(${zoomLevel})`
+                                                    }}
                                                 />
                                                 {detectionStatus && (
                                                     <div className={`absolute top-4 left-4 right-4 px-4 py-3 rounded-lg text-sm font-bold z-10 ${
@@ -1040,20 +1117,34 @@
                                                 <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-col gap-1 sm:gap-2 z-10">
                                                     <button
                                                         onClick={zoomIn}
-                                                        className="bg-black/70 hover:bg-black/80 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl"
+                                                        disabled={supportsZoom && zoomLevel >= zoomCapabilities.max}
+                                                        className="bg-black/70 hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl shadow-lg"
                                                         title="Zoom In"
                                                     >
                                                         +
                                                     </button>
-                                                    <div className="bg-black/70 text-white text-xs text-center py-1 px-2 rounded">
-                                                        {(zoomLevel * 100).toFixed(0)}%
+                                                    <div className="bg-black/70 text-white text-xs text-center py-1 px-2 rounded shadow-lg">
+                                                        <div className="font-bold">
+                                                            {supportsZoom ? `${zoomLevel.toFixed(1)}x` : `${(zoomLevel * 100).toFixed(0)}%`}
+                                                        </div>
+                                                        <div className="text-[10px] opacity-75">
+                                                            {supportsZoom ? 'Native' : 'CSS'}
+                                                        </div>
                                                     </div>
                                                     <button
                                                         onClick={zoomOut}
-                                                        className="bg-black/70 hover:bg-black/80 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl"
+                                                        disabled={supportsZoom && zoomLevel <= zoomCapabilities.min}
+                                                        className="bg-black/70 hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition font-bold text-lg sm:text-xl shadow-lg"
                                                         title="Zoom Out"
                                                     >
                                                         −
+                                                    </button>
+                                                    <button
+                                                        onClick={resetZoom}
+                                                        className="bg-blue-500/70 hover:bg-blue-600/80 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition text-xs sm:text-sm shadow-lg"
+                                                        title="Reset Zoom"
+                                                    >
+                                                        1:1
                                                     </button>
                                                 </div>
                                             </div>
