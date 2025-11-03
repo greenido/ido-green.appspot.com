@@ -94,6 +94,18 @@
             </svg>
         );
 
+        const Video = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+        );
+
+        const Download = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        );
+
         function PullUpTracker() {
             const [players, setPlayers] = useState([]);
             const [newPlayerName, setNewPlayerName] = useState('');
@@ -111,11 +123,15 @@
             const [zoomLevel, setZoomLevel] = useState(1.0); // Start at 1.0x zoom (no zoom)
             const [supportsZoom, setSupportsZoom] = useState(false);
             const [zoomCapabilities, setZoomCapabilities] = useState({ min: 1, max: 1 });
+            const [isRecording, setIsRecording] = useState(false);
+            const [recordedChunks, setRecordedChunks] = useState([]);
+            const [recordedVideoUrl, setRecordedVideoUrl] = useState(null);
             const videoRef = useRef(null);
             const canvasRef = useRef(null);
             const streamRef = useRef(null);
             const poseRef = useRef(null);
             const cameraRef = useRef(null);
+            const mediaRecorderRef = useRef(null);
             const retryCountRef = useRef(0);
             const maxRetries = 3;
 
@@ -913,8 +929,101 @@
                 console.log('[Zoom] Reset zoom to:', defaultZoom);
             };
 
+            const startRecording = () => {
+                if (!canvasRef.current) {
+                    console.error('[Recording] Canvas not available');
+                    return;
+                }
+
+                try {
+                    console.log('[Recording] Starting video recording...');
+                    
+                    // Capture the canvas stream which includes the video + pose overlay
+                    const canvasStream = canvasRef.current.captureStream(30); // 30 fps
+                    
+                    // Set up MediaRecorder
+                    const options = { mimeType: 'video/webm;codecs=vp9' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/webm;codecs=vp8';
+                        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                            options.mimeType = 'video/webm';
+                        }
+                    }
+                    
+                    const mediaRecorder = new MediaRecorder(canvasStream, options);
+                    mediaRecorderRef.current = mediaRecorder;
+                    
+                    const chunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            chunks.push(event.data);
+                            console.log('[Recording] Chunk recorded:', event.data.size, 'bytes');
+                        }
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        console.log('[Recording] Recording stopped, total chunks:', chunks.length);
+                        setRecordedChunks(chunks);
+                        
+                        // Create a blob and URL for the recorded video
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        setRecordedVideoUrl(url);
+                        console.log('[Recording] Video URL created:', url);
+                    };
+                    
+                    mediaRecorder.start();
+                    setIsRecording(true);
+                    console.log('[Recording] MediaRecorder started');
+                    setDetectionStatus('🔴 Recording started!');
+                    setTimeout(() => setDetectionStatus(''), 3000);
+                } catch (err) {
+                    console.error('[Recording] Error starting recording:', err);
+                    setDetectionStatus('❌ Recording failed: ' + err.message);
+                    setTimeout(() => setDetectionStatus(''), 5000);
+                }
+            };
+
+            const stopRecording = () => {
+                if (mediaRecorderRef.current && isRecording) {
+                    console.log('[Recording] Stopping recording...');
+                    mediaRecorderRef.current.stop();
+                    setIsRecording(false);
+                    setDetectionStatus('✅ Recording saved! Click download to save.');
+                    setTimeout(() => setDetectionStatus(''), 5000);
+                }
+            };
+
+            const downloadRecording = () => {
+                if (recordedVideoUrl) {
+                    const currentPlayer = players[currentPlayerIndex];
+                    const playerName = currentPlayer ? currentPlayer.name.replace(/\s+/g, '_') : 'player';
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    const filename = `pullup_${playerName}_${timestamp}.webm`;
+                    
+                    const a = document.createElement('a');
+                    a.href = recordedVideoUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    console.log('[Recording] Video downloaded:', filename);
+                    setDetectionStatus('✅ Video downloaded: ' + filename);
+                    setTimeout(() => setDetectionStatus(''), 5000);
+                }
+            };
+
             const stopCamera = () => {
                 console.log('[Camera] Stopping camera...');
+                
+                // Stop recording if active
+                if (isRecording && mediaRecorderRef.current) {
+                    console.log('[Camera] Stopping active recording...');
+                    mediaRecorderRef.current.stop();
+                    setIsRecording(false);
+                }
                 
                 // Stop drawing loops
                 if (window.cameraLoops) {
@@ -1109,6 +1218,12 @@
                                                     </div>
                                                 )}
                                                 <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-1 sm:gap-2 z-10">
+                                                    {isRecording && (
+                                                        <div className="flex items-center gap-1 bg-red-500 px-2 py-1 rounded-full mr-2">
+                                                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                                            <span className="text-white text-xs font-bold">REC</span>
+                                                        </div>
+                                                    )}
                                                     <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${isDetecting ? 'bg-green-400' : 'bg-red-400'}`} />
                                                     <span className="text-white text-xs sm:text-sm">
                                                         {isDetecting ? 'Detecting' : 'Paused'}
@@ -1222,6 +1337,34 @@
 
                                             {showCamera && (
                                                 <div className="space-y-2">
+                                                    <div className="flex gap-2">
+                                                        {!isRecording ? (
+                                                            <button
+                                                                onClick={startRecording}
+                                                                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 sm:py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm sm:text-base"
+                                                            >
+                                                                <Video size={16} className="sm:w-5 sm:h-5" />
+                                                                Start Recording
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={stopRecording}
+                                                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm sm:text-base animate-pulse"
+                                                            >
+                                                                <div className="w-3 h-3 bg-white rounded-full"></div>
+                                                                Stop Recording
+                                                            </button>
+                                                        )}
+                                                        {recordedVideoUrl && (
+                                                            <button
+                                                                onClick={downloadRecording}
+                                                                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm sm:text-base"
+                                                            >
+                                                                <Download size={16} className="sm:w-5 sm:h-5" />
+                                                                Save Video
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                     <button
                                                         onClick={switchCamera}
                                                         className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 sm:py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -1376,6 +1519,13 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    {/* Version and Last Update Info */}
+                    <div className="text-center px-4 py-6">
+                        <p className="text-xs text-white/40">
+                            Version 1.0.0 | Last Updated: November 2, 2025
+                        </p>
                     </div>
                 </div>
             );
