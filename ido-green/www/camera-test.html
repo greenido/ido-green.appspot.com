@@ -240,6 +240,7 @@
         <button id="switchBtn" class="secondary">Switch Camera</button>
         <button id="stopBtn" class="stop">Stop Camera</button>
         <button id="toggleDetectionBtn" class="purple">Enable Pull-Up Detection</button>
+        <button id="resetCountBtn" class="warning">Reset Counter</button>
         <button id="clearBtn">Clear Log</button>
     </div>
     
@@ -260,6 +261,26 @@
         <button id="analyzeImageBtn" class="purple" style="display: none; width: 100%;">🔍 Analyze Image for Pull-Up Position</button>
     </div>
     
+    <div id="videoTestSection" style="background: #16213e; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #ff9800;">
+        <h3 style="color: #ff9800; margin-top: 0;">🎬 Test with Video Upload</h3>
+        <p>Upload a video to automatically count pull-ups (e.g., downloaded YouTube clip)</p>
+        <div class="image-upload-area" id="videoUploadArea" style="border-color: #ff9800;">
+            <p style="font-size: 48px; margin: 0;">🎥</p>
+            <p><strong>Click to upload</strong> or drag & drop a video here</p>
+            <p style="font-size: 12px; opacity: 0.7;">Supported: MP4, WebM, MOV</p>
+            <input type="file" id="videoInput" accept="video/*" style="display: none;">
+        </div>
+        <video id="uploadedVideo" controls style="width: 100%; max-height: 400px; display: none; border-radius: 10px; margin: 10px 0;"></video>
+        <div style="margin: 10px 0;">
+            <button id="analyzeVideoBtn" class="warning" style="display: none; width: 100%;">🎯 Analyze Video & Count Pull-Ups</button>
+            <button id="stopVideoAnalysisBtn" class="stop" style="display: none; width: 100%;">⏹ Stop Analysis</button>
+        </div>
+        <div id="videoAnalysisStats" style="background: #0f3460; padding: 15px; border-radius: 5px; margin: 10px 0; display: none;">
+            <h4 style="margin-top: 0; color: #ff9800;">Video Analysis Progress:</h4>
+            <div id="videoStatsContent"></div>
+        </div>
+    </div>
+    
     <div id="videoContainer">
         <video id="video" autoplay playsinline muted style="position: absolute; opacity: 0.01;"></video>
         <canvas id="canvas"></canvas>
@@ -277,6 +298,7 @@
         const switchBtn = document.getElementById('switchBtn');
         const stopBtn = document.getElementById('stopBtn');
         const toggleDetectionBtn = document.getElementById('toggleDetectionBtn');
+        const resetCountBtn = document.getElementById('resetCountBtn');
         const clearBtn = document.getElementById('clearBtn');
         const clearNamesBtn = document.getElementById('clearNamesBtn');
         const userNameInput = document.getElementById('userName');
@@ -289,6 +311,13 @@
         const analyzeImageBtn = document.getElementById('analyzeImageBtn');
         const detectionStats = document.getElementById('detectionStats');
         const statsContent = document.getElementById('statsContent');
+        const videoInput = document.getElementById('videoInput');
+        const videoUploadArea = document.getElementById('videoUploadArea');
+        const uploadedVideo = document.getElementById('uploadedVideo');
+        const analyzeVideoBtn = document.getElementById('analyzeVideoBtn');
+        const stopVideoAnalysisBtn = document.getElementById('stopVideoAnalysisBtn');
+        const videoAnalysisStats = document.getElementById('videoAnalysisStats');
+        const videoStatsContent = document.getElementById('videoStatsContent');
         
         let stream = null;
         let animationId = null;
@@ -297,6 +326,10 @@
         let isDetectionEnabled = false;
         let pullUpState = 'down';
         let uploadedImage = null;
+        let pullUpCount = 0;
+        let lastStateChangeTime = 0;
+        let videoAnalysisRunning = false;
+        let videoAnalysisInterval = null;
         
         // Initialize MediaPipe Pose
         function initializePose() {
@@ -342,6 +375,25 @@
                     drawPoseLandmarks(context, results.poseLandmarks);
                     const detectionResult = detectPullUp(results.poseLandmarks);
                     
+                    // Count pull-ups on state transitions
+                    if (detectionResult.state !== pullUpState && detectionResult.state !== 'unknown') {
+                        const now = Date.now();
+                        // Prevent rapid state changes (debounce)
+                        if (now - lastStateChangeTime > 300) {
+                            const previousState = pullUpState;
+                            pullUpState = detectionResult.state;
+                            lastStateChangeTime = now;
+                            
+                            // Count a rep when transitioning from 'up' to 'down'
+                            if (previousState === 'up' && detectionResult.state === 'down') {
+                                pullUpCount++;
+                                log(`🎯 PULL-UP #${pullUpCount} COMPLETED!`, 'info');
+                            }
+                            
+                            log(`State change: ${previousState} → ${detectionResult.state}`);
+                        }
+                    }
+                    
                     // Draw detection result on canvas
                     context.save();
                     context.font = 'bold 32px Arial';
@@ -351,6 +403,13 @@
                     const stateText = `State: ${detectionResult.state.toUpperCase()}`;
                     context.strokeText(stateText, 20, 40);
                     context.fillText(stateText, 20, 40);
+                    
+                    // Draw pull-up count
+                    context.font = 'bold 48px Arial';
+                    context.fillStyle = '#FFD700';
+                    const countText = `Count: ${pullUpCount}`;
+                    context.strokeText(countText, 20, 100);
+                    context.fillText(countText, 20, 100);
                     
                     // Draw arm angle
                     context.font = 'bold 28px Arial';
@@ -495,12 +554,16 @@
                 toggleDetectionBtn.textContent = 'Disable Pull-Up Detection';
                 toggleDetectionBtn.classList.remove('purple');
                 toggleDetectionBtn.classList.add('warning');
-                log('Pull-up detection enabled', 'info');
+                // Reset counter when enabling
+                pullUpCount = 0;
+                pullUpState = 'down';
+                lastStateChangeTime = 0;
+                log('Pull-up detection enabled - Counter reset', 'info');
             } else {
                 toggleDetectionBtn.textContent = 'Enable Pull-Up Detection';
                 toggleDetectionBtn.classList.remove('warning');
                 toggleDetectionBtn.classList.add('purple');
-                log('Pull-up detection disabled', 'info');
+                log(`Pull-up detection disabled - Final count: ${pullUpCount}`, 'info');
             }
         }
         
@@ -532,6 +595,54 @@
                 handleImageUpload(e.target.files[0]);
             }
         });
+        
+        // Video upload handling
+        videoUploadArea.addEventListener('click', () => {
+            videoInput.click();
+        });
+        
+        videoUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            videoUploadArea.classList.add('active');
+        });
+        
+        videoUploadArea.addEventListener('dragleave', () => {
+            videoUploadArea.classList.remove('active');
+        });
+        
+        videoUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            videoUploadArea.classList.remove('active');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleVideoUpload(files[0]);
+            }
+        });
+        
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleVideoUpload(e.target.files[0]);
+            }
+        });
+        
+        function handleVideoUpload(file) {
+            if (!file.type.match('video.*')) {
+                log('Please upload a video file', 'error');
+                return;
+            }
+            
+            log(`Loading video: ${file.name}`);
+            const url = URL.createObjectURL(file);
+            
+            uploadedVideo.src = url;
+            uploadedVideo.style.display = 'block';
+            analyzeVideoBtn.style.display = 'block';
+            videoAnalysisStats.style.display = 'none';
+            
+            uploadedVideo.onloadedmetadata = () => {
+                log(`Video loaded: ${uploadedVideo.videoWidth}x${uploadedVideo.videoHeight}, duration: ${uploadedVideo.duration.toFixed(2)}s`);
+            };
+        }
         
         function handleImageUpload(file) {
             if (!file.type.match('image.*')) {
@@ -606,6 +717,132 @@
             }
         }
         
+        // Analyze uploaded video
+        async function analyzeVideo() {
+            if (!uploadedVideo.src) {
+                log('No video to analyze', 'error');
+                return;
+            }
+            
+            if (!pose) {
+                log('Initializing pose detection...', 'warn');
+                initializePose();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            // Reset counters for video analysis
+            pullUpCount = 0;
+            pullUpState = 'down';
+            lastStateChangeTime = 0;
+            videoAnalysisRunning = true;
+            
+            log('🎬 Starting video analysis...');
+            analyzeVideoBtn.style.display = 'none';
+            stopVideoAnalysisBtn.style.display = 'block';
+            videoAnalysisStats.style.display = 'block';
+            
+            // Set canvas size to match video
+            canvas.width = uploadedVideo.videoWidth || 1280;
+            canvas.height = uploadedVideo.videoHeight || 720;
+            
+            // Start video from beginning
+            uploadedVideo.currentTime = 0;
+            await uploadedVideo.play();
+            
+            let frameCount = 0;
+            let lastProcessedTime = -1;
+            const frameInterval = 1000 / 10; // Process 10 frames per second
+            
+            const processVideoFrame = async () => {
+                if (!videoAnalysisRunning || uploadedVideo.paused || uploadedVideo.ended) {
+                    if (uploadedVideo.ended) {
+                        log(`✅ Video analysis complete! Total pull-ups: ${pullUpCount}`);
+                        stopVideoAnalysis();
+                    }
+                    return;
+                }
+                
+                const currentTime = uploadedVideo.currentTime;
+                
+                // Process frame every ~100ms (10 FPS)
+                if (currentTime - lastProcessedTime >= 0.1) {
+                    lastProcessedTime = currentTime;
+                    frameCount++;
+                    
+                    // Draw current video frame to canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(uploadedVideo, 0, 0, canvas.width, canvas.height);
+                    
+                    // Update stats display
+                    updateVideoStats(currentTime, uploadedVideo.duration, frameCount);
+                    
+                    try {
+                        // Send frame to MediaPipe Pose
+                        await pose.send({image: uploadedVideo});
+                    } catch (err) {
+                        console.error('Frame processing error:', err);
+                    }
+                }
+                
+                // Continue processing
+                videoAnalysisInterval = requestAnimationFrame(processVideoFrame);
+            };
+            
+            // Enable detection for video analysis
+            isDetectionEnabled = true;
+            processVideoFrame();
+        }
+        
+        function stopVideoAnalysis() {
+            videoAnalysisRunning = false;
+            isDetectionEnabled = false;
+            
+            if (videoAnalysisInterval) {
+                cancelAnimationFrame(videoAnalysisInterval);
+                videoAnalysisInterval = null;
+            }
+            
+            if (uploadedVideo) {
+                uploadedVideo.pause();
+            }
+            
+            analyzeVideoBtn.style.display = 'block';
+            stopVideoAnalysisBtn.style.display = 'none';
+            
+            log(`Video analysis stopped. Pull-ups counted: ${pullUpCount}`);
+        }
+        
+        function updateVideoStats(currentTime, duration, frameCount) {
+            const progress = (currentTime / duration * 100).toFixed(1);
+            const timeRemaining = (duration - currentTime).toFixed(1);
+            
+            videoStatsContent.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-label">Pull-Ups Counted:</span>
+                    <span class="stat-value" style="color: #FFD700; font-size: 24px; font-weight: bold;">${pullUpCount}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Current State:</span>
+                    <span class="pull-up-state ${pullUpState}">${pullUpState.toUpperCase()}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Progress:</span>
+                    <span class="stat-value">${progress}%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time:</span>
+                    <span class="stat-value">${currentTime.toFixed(1)}s / ${duration.toFixed(1)}s</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Frames Processed:</span>
+                    <span class="stat-value">${frameCount}</span>
+                </div>
+                <div style="background: #1a5490; height: 20px; border-radius: 10px; margin-top: 10px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #4CAF50, #FFD700); height: 100%; width: ${progress}%; transition: width 0.3s;"></div>
+                </div>
+            `;
+        }
+        
         // Display detection statistics
         function displayStats(detectionResult) {
             const stateClass = detectionResult.state === 'up' ? 'up' : 
@@ -657,7 +894,7 @@
                     <strong style="color: #4CAF50;">Detection Logic:</strong><br>
                     <span style="font-size: 12px; color: #aaa;">
                         ✅ UP = Head above wrists<br>
-                        ✅ DOWN = Extended arms only (<30°)
+                        ✅ DOWN = Extended arms only (&lt;35°)
                     </span>
                 </div>
             `;
@@ -714,7 +951,7 @@
             
             const headAboveWrists = headY < wristY - 0.05;  // Head is higher than wrists (lower Y value)
             const wristsBelowShoulders = wristY > shoulderY + 0.05;  // Wrists are lower than shoulders (higher Y value)
-            const armsExtended = avgArmAngle < 30; // Arms extended: angle below 30 degrees
+            const armsExtended = avgArmAngle < 35; // Arms extended: angle below 35 degrees (slightly looser)
             
             // Determine position based on new criteria
             const isUp = headAboveWrists;  // Head above wrists = UP position
@@ -723,10 +960,8 @@
             let state = 'unknown';
             if (isUp) {
                 state = 'up';
-                pullUpState = 'up';
             } else if (isDown) {
                 state = 'down';
-                pullUpState = 'down';
             }
             
             return {
@@ -958,12 +1193,22 @@
             log('Log cleared');
         }
         
+        function resetCounter() {
+            pullUpCount = 0;
+            pullUpState = 'down';
+            lastStateChangeTime = 0;
+            log('🔄 Counter reset to 0', 'info');
+        }
+        
         startBtn.addEventListener('click', () => startCamera('environment'));
         switchBtn.addEventListener('click', switchCamera);
         stopBtn.addEventListener('click', stopCamera);
         toggleDetectionBtn.addEventListener('click', toggleDetection);
+        resetCountBtn.addEventListener('click', resetCounter);
         clearBtn.addEventListener('click', clearLog);
         analyzeImageBtn.addEventListener('click', analyzeImage);
+        analyzeVideoBtn.addEventListener('click', analyzeVideo);
+        stopVideoAnalysisBtn.addEventListener('click', stopVideoAnalysis);
         
         // Load saved names on page load
         loadSavedNames();
@@ -974,6 +1219,7 @@
         log('Camera & Pull-Up Detection test page loaded.');
         log('📝 Enter your name(s) and click "Start Camera (Back)" to begin live testing.');
         log('📸 Or upload an image to test pull-up detection on a photo.');
+        log('🎬 Or upload a video (e.g., from YouTube) to automatically count pull-ups!');
     </script>
 </body>
 </html>

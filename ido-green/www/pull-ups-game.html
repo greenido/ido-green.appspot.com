@@ -613,13 +613,13 @@
                 // Update current arm angle state
                 setCurrentArmAngle(avgArmAngle);
                 
-                // NEW DETECTION LOGIC:
+                // NEW DETECTION LOGIC (UPDATED to match camera-test.html):
                 // 1. UP: Head is above wrists (head pulled up above the bar where hands are)
                 // 2. DOWN: Extended arms only (hanging position)
                 
                 const headAboveWrists = headY < wristY - 0.05;  // Head is higher than wrists (lower Y value)
                 const wristsBelowShoulders = wristY > shoulderY + 0.05;  // Wrists are lower than shoulders (higher Y value)
-                const armsExtended = avgArmAngle < 30; // Arms extended: angle below 30 degrees
+                const armsExtended = avgArmAngle < 35; // Arms extended: angle below 35 degrees (slightly looser)
                 
                 console.log('[Detection] Head Y:', headY.toFixed(3), 
                            'Wrist Y:', wristY.toFixed(3), 
