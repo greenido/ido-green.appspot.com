@@ -115,6 +115,7 @@
             const [cameraError, setCameraError] = useState('');
             const [hasPermission, setHasPermission] = useState(false);
             const [isDetecting, setIsDetecting] = useState(false);
+            const [showTrackingOverlay, setShowTrackingOverlay] = useState(true);
             const [detectionStatus, setDetectionStatus] = useState('');
             const [pullUpState, setPullUpState] = useState('down'); // 'down', 'up', 'transitioning'
             const [lastPullUpTime, setLastPullUpTime] = useState(0);
@@ -140,6 +141,7 @@
             const lastPullUpTimeRef = useRef(0);
             const isDetectingRef = useRef(isDetecting);
             const showCameraRef = useRef(showCamera);
+            const showTrackingOverlayRef = useRef(true);
 
             useEffect(() => {
                 // Initialize MediaPipe Pose
@@ -212,11 +214,23 @@
                 showCameraRef.current = showCamera;
             }, [showCamera]);
 
+            useEffect(() => {
+                showTrackingOverlayRef.current = showTrackingOverlay;
+            }, [showTrackingOverlay]);
+
             const resetDetectionState = () => {
                 pullUpStateRef.current = 'down';
                 setPullUpState('down');
                 lastPullUpTimeRef.current = 0;
                 setLastPullUpTime(0);
+            };
+
+            const toggleTrackingOverlay = () => {
+                setShowTrackingOverlay(prev => {
+                    const next = !prev;
+                    showTrackingOverlayRef.current = next;
+                    return next;
+                });
             };
 
             // Auto-start function with retry logic
@@ -545,7 +559,7 @@
                             ctx.restore();
                         }
 
-                        console.log(`[Detection] ${detectionResult.state.toUpperCase()} | Head Y: ${detectionResult.headY.toFixed(3)} | Wrist Y: ${detectionResult.wristY.toFixed(3)} | Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`);
+                        // console.log(`[Detection] ${detectionResult.state.toUpperCase()} | Head Y: ${detectionResult.headY.toFixed(3)} | Wrist Y: ${detectionResult.wristY.toFixed(3)} | Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`);
                     } catch (err) {
                         console.error('[Pose] Detection error:', err);
                     }
@@ -554,6 +568,9 @@
 
             const drawPoseLandmarks = (ctx, landmarks) => {
                 const canvas = canvasRef.current;
+                if (!showTrackingOverlayRef.current) {
+                    return;
+                }
                 
                 // Calculate bounding box for the person
                 let minX = canvas.width, minY = canvas.height;
@@ -730,10 +747,10 @@
                     state = 'down';
                 }
                 
-                console.log('[Detection] Head Y:', headY.toFixed(3), 
-                           'Wrist Y:', wristY.toFixed(3), 
-                           'Avg Angle:', avgArmAngle.toFixed(1),
-                           'State:', state);
+                // console.log('[Detection] Head Y:', headY.toFixed(3),
+                //            'Wrist Y:', wristY.toFixed(3),
+                //            'Avg Angle:', avgArmAngle.toFixed(1),
+                //            'State:', state);
                 
                 return {
                     state,
@@ -1489,6 +1506,16 @@
                                                         }`}
                                                     >
                                                         {isDetecting ? 'Pause Auto-Detection' : 'Resume Auto-Detection'}
+                                                    </button>
+                                                    <button
+                                                        onClick={toggleTrackingOverlay}
+                                                        className={`w-full py-2 sm:py-3 rounded-lg font-bold transition text-sm sm:text-base ${
+                                                            showTrackingOverlay
+                                                                ? 'bg-white/10 hover:bg-white/20 text-white'
+                                                                : 'bg-slate-900/60 hover:bg-slate-900/80 text-white border border-white/20'
+                                                        }`}
+                                                    >
+                                                        {showTrackingOverlay ? 'Hide Tracking Overlay' : 'Show Tracking Overlay'}
                                                     </button>
                                                 </div>
                                             )}
