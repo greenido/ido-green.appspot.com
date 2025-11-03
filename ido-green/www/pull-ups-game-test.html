@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pull-Ups Detection Test Rig</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+    <main class="max-w-5xl mx-auto px-4 py-10 space-y-8">
+        <header class="space-y-2">
+            <h1 class="text-3xl font-semibold tracking-tight">Pull-Ups Detection Test Rig</h1>
+            <p class="text-sm text-slate-300">Load a recorded set, tell the system how many pull-ups are inside, and see whether the detection logic keeps up.</p>
+        </header>
+
+        <section class="bg-slate-800/70 border border-slate-700 rounded-xl p-6 space-y-4">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end">
+                <label class="flex-1">
+                    <span class="block text-sm font-medium mb-1">Video file</span>
+                    <input id="video-input" type="file" accept="video/*" class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm" />
+                </label>
+                <label class="w-full md:w-40">
+                    <span class="block text-sm font-medium mb-1">Expected pull-ups</span>
+                    <input id="expected-count" type="number" min="0" step="1" value="0" class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm" />
+                </label>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <span id="analysis-badge" class="inline-flex items-center rounded-full bg-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide">Idle</span>
+                    <p id="status-text" class="text-sm text-slate-300">Load a video to get started.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="start-analysis" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-600">Start analysis</button>
+                    <button id="stop-analysis" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-slate-600" disabled>Stop</button>
+                </div>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-700 overflow-hidden">
+                <div id="progress-bar" class="h-full w-0 bg-emerald-400 transition-[width] duration-200"></div>
+            </div>
+        </section>
+
+        <section class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+                <h2 class="text-xl font-semibold">Video preview</h2>
+                <div class="relative w-full overflow-hidden rounded-xl bg-black">
+                    <video id="test-video" class="block w-full" controls playsinline></video>
+                    <canvas id="pose-overlay" class="pointer-events-none absolute inset-0 h-full w-full"></canvas>
+                </div>
+                <p class="text-xs text-slate-400">The overlay shows the landmarks and state used by the counter during analysis.</p>
+            </div>
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold">Live metrics</h2>
+                <div class="grid gap-3 rounded-xl border border-slate-700 bg-slate-800/70 p-4 text-sm">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                        <span class="text-slate-300">Detected pull-ups</span>
+                        <span id="detected-count" class="text-2xl font-semibold">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Expected pull-ups</span>
+                        <span id="expected-display" class="text-lg font-medium">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Difference (detected - expected)</span>
+                        <span id="difference-display" class="text-lg font-medium">0</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Current state</span>
+                        <span id="state-display" class="rounded-md bg-slate-700 px-2 py-1 text-sm font-semibold">--</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Average arm angle</span>
+                        <span id="arm-angle" class="text-lg font-medium">--</span>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4 text-sm">
+                    <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">Result</h3>
+                    <p id="result-message" class="text-base text-slate-100">Awaiting analysis.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="rounded-xl border border-slate-700 bg-slate-800/70 p-6 space-y-3 text-sm text-slate-300">
+            <h2 class="text-lg font-semibold text-slate-100">How this works</h2>
+            <p>This page runs the exact pull-up detection logic from the live challenge page. The counter increments whenever the model sees a transition from the up position back to the down position. Use videos recorded from roughly the same angle as live play for the best comparison.</p>
+            <p>If the recorded motion drifts out of frame or the landmarks are lost, the counter will pause until the pose is tracked again.</p>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoInput = document.getElementById('video-input');
+            const expectedInput = document.getElementById('expected-count');
+            const startButton = document.getElementById('start-analysis');
+            const stopButton = document.getElementById('stop-analysis');
+            const statusText = document.getElementById('status-text');
+            const badge = document.getElementById('analysis-badge');
+            const progressBar = document.getElementById('progress-bar');
+            const video = document.getElementById('test-video');
+            const canvas = document.getElementById('pose-overlay');
+            const ctx = canvas.getContext('2d');
+            const detectedCountDisplay = document.getElementById('detected-count');
+            const expectedDisplay = document.getElementById('expected-display');
+            const differenceDisplay = document.getElementById('difference-display');
+            const stateDisplay = document.getElementById('state-display');
+            const armAngleDisplay = document.getElementById('arm-angle');
+            const resultMessage = document.getElementById('result-message');
+
+            let pose = null;
+            let poseReady = false;
+            let processing = false;
+            let animationFrameId = null;
+            let pullUpState = 'down';
+            let lastPullUpTime = 0;
+            let currentCount = 0;
+            let currentVideoUrl = null;
+
+            const resetOverlay = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            };
+
+            const updateBadge = (state) => {
+                badge.classList.remove('bg-slate-700', 'bg-emerald-500', 'bg-amber-500');
+                if (state === 'analyzing') {
+                    badge.textContent = 'Analyzing';
+                    badge.classList.add('bg-emerald-500');
+                } else if (state === 'completed') {
+                    badge.textContent = 'Completed';
+                    badge.classList.add('bg-amber-500');
+                } else {
+                    badge.textContent = 'Idle';
+                    badge.classList.add('bg-slate-700');
+                }
+            };
+
+            const getExpectedCount = () => {
+                const value = Number.parseInt(expectedInput.value, 10);
+                return Number.isNaN(value) ? 0 : Math.max(0, value);
+            };
+
+            const updateCounters = () => {
+                const expectedCount = getExpectedCount();
+                detectedCountDisplay.textContent = currentCount;
+                expectedDisplay.textContent = expectedCount;
+                const difference = currentCount - expectedCount;
+                differenceDisplay.textContent = difference >= 0 ? `+${difference}` : `${difference}`;
+            };
+
+            const updateStatus = (message) => {
+                statusText.textContent = message;
+            };
+
+            const stopAnimationLoop = () => {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            };
+
+            const detectPullUp = (landmarks) => {
+                if (!landmarks[0] || !landmarks[11] || !landmarks[12] || !landmarks[13] || !landmarks[14] || !landmarks[15] || !landmarks[16]) {
+                    return {
+                        state: 'unknown',
+                        headY: 0,
+                        shoulderY: 0,
+                        wristY: 0,
+                        avgArmAngle: 0,
+                        headAboveWrists: false,
+                        wristsBelowShoulders: false,
+                        armsExtended: false,
+                        leftArmAngle: 0,
+                        rightArmAngle: 0
+                    };
+                }
+
+                const nose = landmarks[0];
+                const leftShoulder = landmarks[11];
+                const rightShoulder = landmarks[12];
+                const leftElbow = landmarks[13];
+                const rightElbow = landmarks[14];
+                const leftWrist = landmarks[15];
+                const rightWrist = landmarks[16];
+
+                const headY = nose.y;
+                const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+                const wristY = (leftWrist.y + rightWrist.y) / 2;
+
+                const calculateAngle = (shoulder, elbow, wrist) => {
+                    const rad1 = Math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x);
+                    const rad2 = Math.atan2(wrist.y - elbow.y, wrist.x - elbow.x);
+                    let angle = Math.abs(rad1 - rad2) * (180 / Math.PI);
+                    if (angle > 180) {
+                        angle = 360 - angle;
+                    }
+                    return angle;
+                };
+
+                const leftArmAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+                const rightArmAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+                const avgArmAngle = (leftArmAngle + rightArmAngle) / 2;
+
+                const headAboveWrists = headY < wristY - 0.05;
+                const armsExtended = avgArmAngle < 35;
+
+                let state = 'unknown';
+                if (headAboveWrists) {
+                    state = 'up';
+                } else if (armsExtended) {
+                    state = 'down';
+                }
+
+                return {
+                    state,
+                    headY,
+                    shoulderY,
+                    wristY,
+                    avgArmAngle,
+                    headAboveWrists,
+                    wristsBelowShoulders: wristY > shoulderY + 0.05,
+                    armsExtended,
+                    leftArmAngle,
+                    rightArmAngle
+                };
+            };
+
+            const drawPoseOverlay = (landmarks, detection) => {
+                if (!video || !canvas) {
+                    return;
+                }
+
+                const haveCurrentData = video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+                if (haveCurrentData) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+
+                if (!landmarks) {
+                    return;
+                }
+
+                let minX = canvas.width;
+                let minY = canvas.height;
+                let maxX = 0;
+                let maxY = 0;
+
+                landmarks.forEach((landmark) => {
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x);
+                    maxY = Math.max(maxY, y);
+                });
+
+                const padding = 20;
+                minX = Math.max(0, minX - padding);
+                minY = Math.max(0, minY - padding);
+                maxX = Math.min(canvas.width, maxX + padding);
+                maxY = Math.min(canvas.height, maxY + padding);
+
+                const boxWidth = maxX - minX;
+                const boxHeight = maxY - minY;
+                const color = detection.state === 'up' ? '#22c55e' : detection.state === 'down' ? '#0ea5e9' : '#f97316';
+
+                ctx.save();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = color;
+                ctx.strokeRect(minX, minY, boxWidth, boxHeight);
+                ctx.restore();
+
+                const keyPoints = [0, 11, 12, 13, 14, 15, 16];
+                ctx.fillStyle = color;
+                keyPoints.forEach((index) => {
+                    const landmark = landmarks[index];
+                    if (!landmark) {
+                        return;
+                    }
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = color;
+                });
+
+                ctx.save();
+                ctx.font = '24px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#1f2937';
+                ctx.lineWidth = 4;
+                ctx.strokeText(`Count: ${currentCount}`, canvas.width - 20, 40);
+                ctx.fillText(`Count: ${currentCount}`, canvas.width - 20, 40);
+                ctx.strokeText(`State: ${detection.state.toUpperCase()}`, 20, 40);
+                ctx.fillText(`State: ${detection.state.toUpperCase()}`, 20, 40);
+                ctx.restore();
+            };
+
+            const handlePoseResults = (results) => {
+                if (!processing) {
+                    return;
+                }
+
+                if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                }
+
+                if (results.poseLandmarks) {
+                    const detection = detectPullUp(results.poseLandmarks);
+
+                    if (detection.state !== pullUpState && detection.state !== 'unknown') {
+                        const now = performance.now();
+                        if (now - lastPullUpTime > 300) {
+                            const previousState = pullUpState;
+                            pullUpState = detection.state;
+                            lastPullUpTime = now;
+                            if (previousState === 'up' && detection.state === 'down') {
+                                currentCount += 1;
+                                updateCounters();
+                            }
+                        }
+                    }
+
+                    armAngleDisplay.textContent = detection.avgArmAngle.toFixed(1);
+                    stateDisplay.textContent = detection.state.toUpperCase();
+                    drawPoseOverlay(results.poseLandmarks, detection);
+                } else {
+                    drawPoseOverlay(null, { state: pullUpState });
+                    stateDisplay.textContent = '--';
+                    armAngleDisplay.textContent = '--';
+                }
+            };
+
+            const processFrame = async () => {
+                if (!processing || !pose || !poseReady) {
+                    return;
+                }
+
+                if (video.paused || video.ended) {
+                    stopAnalysis('Video paused or ended.');
+                    return;
+                }
+
+                try {
+                    await pose.send({ image: video });
+                } catch (error) {
+                    console.error('Pose processing error', error);
+                }
+
+                animationFrameId = requestAnimationFrame(processFrame);
+            };
+
+            const startAnalysis = async () => {
+                if (!poseReady) {
+                    updateStatus('Pose model is still loading.');
+                    return;
+                }
+                if (!video.src) {
+                    updateStatus('Load a video file first.');
+                    return;
+                }
+                if (video.readyState < HTMLMediaElement.HAVE_METADATA) {
+                    updateStatus('Video metadata not ready yet.');
+                    return;
+                }
+
+                currentCount = 0;
+                pullUpState = 'down';
+                lastPullUpTime = 0;
+                updateCounters();
+                stateDisplay.textContent = '--';
+                armAngleDisplay.textContent = '--';
+                resultMessage.textContent = 'Analysis running...';
+                progressBar.style.width = '0%';
+
+                processing = true;
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                videoInput.disabled = true;
+                expectedInput.disabled = true;
+                updateBadge('analyzing');
+                updateStatus('Processing frames...');
+
+                try {
+                    video.currentTime = 0;
+                    video.muted = true;
+                    await video.play();
+                } catch (error) {
+                    processing = false;
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                    videoInput.disabled = false;
+                    expectedInput.disabled = false;
+                    updateBadge('idle');
+                    updateStatus('Unable to start playback. Allow the browser to play the video.');
+                    return;
+                }
+
+                processFrame();
+            };
+
+            const stopAnalysis = (reason) => {
+                if (!processing) {
+                    updateStatus(reason || 'Analysis stopped.');
+                    return;
+                }
+
+                processing = false;
+                stopAnimationLoop();
+                video.pause();
+                updateBadge('completed');
+                updateStatus(reason || 'Analysis completed.');
+                startButton.disabled = false;
+                stopButton.disabled = true;
+                videoInput.disabled = false;
+                expectedInput.disabled = false;
+
+                const expectedCount = getExpectedCount();
+                const difference = currentCount - expectedCount;
+                if (difference === 0) {
+                    resultMessage.textContent = `Match: detected ${currentCount} pull-ups as expected.`;
+                } else if (difference > 0) {
+                    resultMessage.textContent = `Detected ${currentCount}. That is ${difference} more than expected (${expectedCount}).`;
+                } else {
+                    resultMessage.textContent = `Detected ${currentCount}. That is ${Math.abs(difference)} fewer than expected (${expectedCount}).`;
+                }
+            };
+
+            const updateProgress = () => {
+                if (!video.duration || Number.isNaN(video.duration)) {
+                    return;
+                }
+                const percent = Math.min(100, Math.max(0, (video.currentTime / video.duration) * 100));
+                progressBar.style.width = `${percent}%`;
+            };
+
+            const handleFileSelection = () => {
+                const file = videoInput.files && videoInput.files[0];
+                if (!file) {
+                    return;
+                }
+
+                if (currentVideoUrl) {
+                    URL.revokeObjectURL(currentVideoUrl);
+                    currentVideoUrl = null;
+                }
+
+                currentVideoUrl = URL.createObjectURL(file);
+                video.src = currentVideoUrl;
+                video.load();
+                updateStatus(`Loaded ${file.name}.`);
+                resultMessage.textContent = 'Ready for analysis.';
+            };
+
+            const initPose = async () => {
+                try {
+                    const PoseConstructor = window.Pose && window.Pose.Pose ? window.Pose.Pose : window.Pose;
+                    if (!PoseConstructor) {
+                        throw new Error('Pose module not found on window.');
+                    }
+                    pose = new PoseConstructor({
+                        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+                    });
+                    pose.setOptions({
+                        modelComplexity: 1,
+                        smoothLandmarks: true,
+                        enableSegmentation: false,
+                        smoothSegmentation: false,
+                        minDetectionConfidence: 0.5,
+                        minTrackingConfidence: 0.5
+                    });
+                    pose.onResults(handlePoseResults);
+                    poseReady = true;
+                    updateStatus('Pose model ready. Load a video to begin.');
+                } catch (error) {
+                    console.error('Pose init error', error);
+                    updateStatus('Unable to initialise the pose model. Check the console for details.');
+                }
+            };
+
+            videoInput.addEventListener('change', handleFileSelection);
+            expectedInput.addEventListener('input', () => {
+                updateCounters();
+            });
+            startButton.addEventListener('click', startAnalysis);
+            stopButton.addEventListener('click', () => stopAnalysis('Analysis stopped by user.'));
+            video.addEventListener('ended', () => stopAnalysis('Video playback completed.'));
+            video.addEventListener('timeupdate', updateProgress);
+            video.addEventListener('loadedmetadata', () => {
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                resetOverlay();
+            });
+            window.addEventListener('beforeunload', () => {
+                if (currentVideoUrl) {
+                    URL.revokeObjectURL(currentVideoUrl);
+                }
+            });
+
+            updateCounters();
+            updateBadge('idle');
+            initPose();
+        });
+    </script>
+</body>
+</html>

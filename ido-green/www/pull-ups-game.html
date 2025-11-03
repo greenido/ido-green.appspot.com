@@ -134,6 +134,12 @@
             const mediaRecorderRef = useRef(null);
             const retryCountRef = useRef(0);
             const maxRetries = 3;
+            const playersRef = useRef(players);
+            const currentPlayerIndexRef = useRef(currentPlayerIndex);
+            const pullUpStateRef = useRef('down');
+            const lastPullUpTimeRef = useRef(0);
+            const isDetectingRef = useRef(isDetecting);
+            const showCameraRef = useRef(showCamera);
 
             useEffect(() => {
                 // Initialize MediaPipe Pose
@@ -182,6 +188,37 @@
                 };
             }, []);
 
+            useEffect(() => {
+                playersRef.current = players;
+            }, [players]);
+
+            useEffect(() => {
+                currentPlayerIndexRef.current = currentPlayerIndex;
+            }, [currentPlayerIndex]);
+
+            useEffect(() => {
+                pullUpStateRef.current = pullUpState;
+            }, [pullUpState]);
+
+            useEffect(() => {
+                lastPullUpTimeRef.current = lastPullUpTime;
+            }, [lastPullUpTime]);
+
+            useEffect(() => {
+                isDetectingRef.current = isDetecting;
+            }, [isDetecting]);
+
+            useEffect(() => {
+                showCameraRef.current = showCamera;
+            }, [showCamera]);
+
+            const resetDetectionState = () => {
+                pullUpStateRef.current = 'down';
+                setPullUpState('down');
+                lastPullUpTimeRef.current = 0;
+                setLastPullUpTime(0);
+            };
+
             // Auto-start function with retry logic
             const initializeAutoStart = async () => {
                 console.log('[AutoStart] Attempting to initialize camera and tracking...');
@@ -196,7 +233,7 @@
                         
                         // Auto-start tracking if players exist
                         setTimeout(() => {
-                            if (players.length > 0) {
+                            if (playersRef.current.length > 0) {
                                 console.log('[AutoStart] Players exist, starting tracking automatically');
                                 autoStartTracking();
                             } else {
@@ -260,7 +297,7 @@
                         
                         // Start the camera and tracking
                         setTimeout(() => {
-                            if (players.length > 0) {
+                            if (playersRef.current.length > 0) {
                                 autoStartTracking();
                             } else {
                                 startCameraWithRetry();
@@ -293,8 +330,10 @@
             // Auto-start tracking (only if permission granted)
             const autoStartTracking = () => {
                 console.log('[AutoStart] Starting tracking automatically...');
+                resetDetectionState();
                 setIsTracking(true);
                 setIsDetecting(true);
+                isDetectingRef.current = true;
                 setDetectionStatus('🚀 Auto-starting camera and detection...');
                 setTimeout(() => setDetectionStatus(''), 3000);
                 startCameraWithRetry();
@@ -323,7 +362,10 @@
                         setDetectionStatus('❌ Auto-tracking unavailable - Use manual +/- buttons');
                         setTimeout(() => setDetectionStatus(''), 3000);
                         setShowCamera(false);
+                        showCameraRef.current = false;
                         setIsDetecting(false);
+                        isDetectingRef.current = false;
+                        resetDetectionState();
                     }
                 }
             };
@@ -415,90 +457,94 @@
             };
 
             const onPoseResults = (results) => {
-                if (!canvasRef.current || !videoRef.current || !showCamera || !isDetecting) {
+                if (!canvasRef.current || !videoRef.current || !showCameraRef.current || !isDetectingRef.current) {
                     return;
                 }
-                
+
                 const canvas = canvasRef.current;
                 const ctx = canvas.getContext('2d');
                 const video = videoRef.current;
-                
+                const currentPlayers = playersRef.current;
+                const currentIndex = currentPlayerIndexRef.current;
+                const currentPullUpState = pullUpStateRef.current;
+
                 // Draw video frame first
                 if (video.readyState >= 2) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 }
-                
-                // Add pose landmarks if available
+
                 if (results.poseLandmarks) {
                     try {
                         drawPoseLandmarks(ctx, results.poseLandmarks);
                         const detectionResult = detectPullUp(results.poseLandmarks);
-                        
-                        // Count pull-ups on state transitions (matching camera-test.html)
-                        if (detectionResult.state !== pullUpState && detectionResult.state !== 'unknown') {
+                        const activePlayer = currentPlayers[currentIndex];
+                        let displayScore = activePlayer ? activePlayer.score : 0;
+
+                        if (detectionResult.state !== currentPullUpState && detectionResult.state !== 'unknown') {
                             const now = Date.now();
-                            // Prevent rapid state changes (debounce) - matching camera-test.html 300ms
-                            if (now - lastPullUpTime > 300) {
-                                const previousState = pullUpState;
+
+                            if (now - lastPullUpTimeRef.current > 300) {
+                                const previousState = currentPullUpState;
+                                pullUpStateRef.current = detectionResult.state;
                                 setPullUpState(detectionResult.state);
+                                lastPullUpTimeRef.current = now;
                                 setLastPullUpTime(now);
-                                
-                                // Count a rep when transitioning from 'up' to 'down'
+
                                 if (previousState === 'up' && detectionResult.state === 'down') {
-                                    incrementScore(currentPlayerIndex);
-                                    console.log(`[Detection] 🎯 PULL-UP #${players[currentPlayerIndex]?.score + 1} COMPLETED!`);
-                                    setDetectionStatus('✅ Pull-up completed! +1 point');
-                                    
-                                    // Play success feedback - flash green border
-                                    setTimeout(() => {
-                                        ctx.strokeStyle = '#00ff00';
-                                        ctx.lineWidth = 10;
-                                        ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-                                    }, 0);
-                                    
-                                    // Clear status after 3 seconds
-                                    setTimeout(() => setDetectionStatus(''), 3000);
+                                    if (activePlayer) {
+                                        const nextScore = activePlayer.score + 1;
+                                        displayScore = nextScore;
+                                        incrementScore(currentIndex);
+                                        console.log(`[Detection] 🎯 PULL-UP #${nextScore} COMPLETED by ${activePlayer.name}!`);
+                                        setDetectionStatus('✅ Pull-up completed! +1 point');
+
+                                        setTimeout(() => {
+                                            ctx.strokeStyle = '#00ff00';
+                                            ctx.lineWidth = 10;
+                                            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+                                        }, 0);
+
+                                        setTimeout(() => setDetectionStatus(''), 3000);
+                                    } else {
+                                        console.warn(`[Detection] Active player missing during score increment (index ${currentIndex})`);
+                                    }
                                 }
-                                
+
                                 console.log(`[Detection] State change: ${previousState} → ${detectionResult.state}`);
                             }
                         }
-                        
-                        // Draw pullup counter and stats on canvas
-                        if (players.length > 0 && players[currentPlayerIndex]) {
+
+                        if (activePlayer) {
                             ctx.save();
                             ctx.font = 'bold 48px Arial';
-                            ctx.fillStyle = '#FFD700'; // Gold color for count
+                            ctx.fillStyle = '#FFD700';
                             ctx.strokeStyle = '#000000';
                             ctx.lineWidth = 4;
                             ctx.textAlign = 'right';
-                            const counterText = `Count: ${players[currentPlayerIndex].score}`;
+                            const counterText = `Count: ${displayScore}`;
                             const textX = canvas.width - 20;
                             const textY = 60;
                             ctx.strokeText(counterText, textX, textY);
                             ctx.fillText(counterText, textX, textY);
-                            
-                            // Draw state below counter (matching camera-test.html)
+
                             ctx.font = 'bold 32px Arial';
                             ctx.fillStyle = detectionResult.state === 'up' ? '#00ff00' : '#00aaff';
                             const stateY = textY - 40;
                             const stateText = `State: ${detectionResult.state.toUpperCase()}`;
                             ctx.strokeText(stateText, textX, stateY);
                             ctx.fillText(stateText, textX, stateY);
-                            
-                            // Draw arm angle below counter (matching camera-test.html color logic)
+
                             ctx.font = 'bold 28px Arial';
-                            ctx.fillStyle = detectionResult.armsExtended ? '#00ff00' : '#ff9800'; // Green when extended, orange otherwise
+                            ctx.fillStyle = detectionResult.armsExtended ? '#00ff00' : '#ff9800';
                             const angleY = textY + 45;
                             const angleText = `Arm Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`;
                             ctx.strokeText(angleText, textX, angleY);
                             ctx.fillText(angleText, textX, angleY);
-                            
+
                             ctx.restore();
                         }
-                        
-                        // Log detection info (matching camera-test.html)
+
                         console.log(`[Detection] ${detectionResult.state.toUpperCase()} | Head Y: ${detectionResult.headY.toFixed(3)} | Wrist Y: ${detectionResult.wristY.toFixed(3)} | Angle: ${detectionResult.avgArmAngle.toFixed(1)}°`);
                     } catch (err) {
                         console.error('[Pose] Detection error:', err);
@@ -710,6 +756,7 @@
                     
                     // IMPORTANT: Show camera UI FIRST before doing anything else
                     setShowCamera(true);
+                    showCameraRef.current = true;
                     
                     // Stop existing stream if any
                     if (streamRef.current) {
@@ -829,7 +876,7 @@
                                             return;
                                         }
                                         
-                                        if (isDetecting && videoRef.current.readyState >= 2 && !isPoseProcessing) {
+                                        if (isDetectingRef.current && videoRef.current.readyState >= 2 && !isPoseProcessing) {
                                             isPoseProcessing = true;
                                             try {
                                                 await poseRef.current.send({image: videoRef.current});
@@ -865,7 +912,7 @@
                                     
                                     // Clear the success message after 3 seconds
                                     setTimeout(() => {
-                                        if (isDetecting) {
+                                        if (isDetectingRef.current) {
                                             setDetectionStatus('');
                                         }
                                     }, 3000);
@@ -887,6 +934,10 @@
                     console.error('[Camera] Start error:', err.name, err.message);
                     setCameraError(`Failed to start camera: ${err.message}`);
                     setShowCamera(false);
+                    showCameraRef.current = false;
+                    setIsDetecting(false);
+                    isDetectingRef.current = false;
+                    resetDetectionState();
                 }
             };
 
@@ -1085,7 +1136,10 @@
                 
                 console.log('[Camera] Camera stopped');
                 setShowCamera(false);
+                showCameraRef.current = false;
                 setIsDetecting(false);
+                isDetectingRef.current = false;
+                resetDetectionState();
                 setDetectionStatus('');
             };
 
@@ -1111,17 +1165,34 @@
             };
 
             const incrementScore = (index) => {
-                const updated = [...players];
-                updated[index].score += 1;
-                console.log('[Score] Incrementing score for', updated[index].name, 'to', updated[index].score);
-                setPlayers(updated);
+                setPlayers(prevPlayers => {
+                    const target = prevPlayers[index];
+                    if (!target) {
+                        console.warn('[Score] Attempted to increment missing player at index', index);
+                        return prevPlayers;
+                    }
+                    const updated = prevPlayers.map((player, i) => (
+                        i === index ? { ...player, score: player.score + 1 } : player
+                    ));
+                    console.log('[Score] Incrementing score for', target.name, 'to', target.score + 1);
+                    return updated;
+                });
             };
 
             const decrementScore = (index) => {
-                const updated = [...players];
-                updated[index].score = Math.max(0, updated[index].score - 1);
-                console.log('[Score] Decrementing score for', updated[index].name, 'to', updated[index].score);
-                setPlayers(updated);
+                setPlayers(prevPlayers => {
+                    const target = prevPlayers[index];
+                    if (!target) {
+                        console.warn('[Score] Attempted to decrement missing player at index', index);
+                        return prevPlayers;
+                    }
+                    const nextScore = Math.max(0, target.score - 1);
+                    const updated = prevPlayers.map((player, i) => (
+                        i === index ? { ...player, score: nextScore } : player
+                    ));
+                    console.log('[Score] Decrementing score for', target.name, 'to', nextScore);
+                    return updated;
+                });
             };
 
             const startTracking = () => {
@@ -1134,8 +1205,10 @@
                 console.log('[Tracking] Current player:', players[currentPlayerIndex]?.name);
                 console.log('[Tracking] Has permission:', hasPermission);
                 
+                resetDetectionState();
                 setIsTracking(true);
                 setIsDetecting(true);
+                isDetectingRef.current = true;
                 setDetectionStatus('🚀 Initializing camera and detection...');
                 setTimeout(() => setDetectionStatus(''), 3000);
                 
@@ -1152,13 +1225,16 @@
                 console.log('[Tracking] Stopping tracking mode');
                 setIsTracking(false);
                 setIsDetecting(false);
+                isDetectingRef.current = false;
                 stopCamera();
             };
 
             const toggleDetection = () => {
-                console.log('[Detection] Toggling detection from', isDetecting, 'to', !isDetecting);
-                setIsDetecting(!isDetecting);
-                if (!isDetecting) {
+                const nextDetecting = !isDetectingRef.current;
+                console.log('[Detection] Toggling detection from', isDetectingRef.current, 'to', nextDetecting);
+                setIsDetecting(nextDetecting);
+                isDetectingRef.current = nextDetecting;
+                if (nextDetecting) {
                     // Enabling detection
                     if (poseRef.current && cameraRef.current) {
                         setDetectionStatus('✅ Auto-detection enabled - Ready to count!');
@@ -1191,7 +1267,7 @@
 
             const resetScores = () => {
                 console.log('[Players] Resetting all scores');
-                setPlayers(players.map(p => ({ ...p, score: 0, sets: [] })));
+                setPlayers(prevPlayers => prevPlayers.map(p => ({ ...p, score: 0, sets: [] })));
             };
 
             const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
