@@ -978,22 +978,88 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">Applications / Open Source Projects</h2>
+                    <h2 class="section-heading">My Projects & Open Source Work</h2>
 
-                    <h3 class="section-subheading text-muted">
-                        <!--  -->
-                        <a href="https://greenido.github.io/weather-4-bike/" target="_blank">🌦️ Weather 4 Bike</a>&nbsp;&nbsp;&nbsp;
-                        <a href="https://season-app-mvp.fly.dev/" target="_blank">🥙 Season App</a>&nbsp;&nbsp;&nbsp;
-                        <a href="https://calories-tracker-4d5eb.web.app/" target="_blank">🥗 Track Your Food</a>&nbsp;&nbsp;&nbsp;
-                        <br><br>
-                        <a href="https://everesting-tool.vercel.app/" target="_blank">⛰️ Everesting Tool</a>&nbsp;&nbsp;&nbsp;
-                        <a href="https://v0-strava-segment-website.vercel.app/" target="_blank">🚴‍♂️ Strava Segment Explorer</a>&nbsp;&nbsp;&nbsp;
-                        <a href="https://hwy80.vercel.app/" target="_blank">🚙 Road Conditions To The Snow</a>&nbsp;&nbsp;&nbsp;
-                        <br><br>
-                        <a href="https://ido-green.appspot.com/pull-ups/pull-ups-game.html" target="_blank">💪🏼 Pull-Ups Game</a>&nbsp;&nbsp;&nbsp;
-                        <a href="https://greenido.wordpress.com/2025/08/04/monitor-your-linux-servers-like-a-pro-now-open-source-%f0%9f%8e%89/" target="_blank">🖥️ Linux Monitoring</a>&nbsp;&nbsp;&nbsp;
+                    <style>
+                        .project-card {
+                            display: inline-block;
+                            margin: 10px;
+                            padding: 10px;
+                            border-radius: 8px;
+                            color: #fff;
+                            text-decoration: none;
+                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                            width: 280px;
+                            height: 96px;
+                            vertical-align: top;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+                        .project-card:hover {
+                            transform: translateY(-5px);
+                            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+                            color: #fff;
+                            text-decoration: none;
+                        }
+                        .project-card h4 {
+                            margin-top: 0;
+                            margin-bottom: 5px;
+                            font-size: 16px;
+                            font-weight: bold;
+                        }
+                        .project-card p {
+                            font-size: 13px;
+                            line-height: 1.2;
+                            margin: 0;
+                        }
+                        /* Different background colors for cards */
+                        .bg-weather { background: linear-gradient(135deg, #3498db, #2980b9); }
+                        .bg-season { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+                        .bg-food { background: linear-gradient(135deg, #e67e22, #d35400); }
+                        .bg-everest { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+                        .bg-strava { background: linear-gradient(135deg, #fc4c02, #d35400); } /* Strava orange-ish */
+                        .bg-road { background: linear-gradient(135deg, #34495e, #2c3e50); }
+                        .bg-pullups { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+                        .bg-linux { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #333 !important; }
                         
-                    </h3>
+                        .bg-linux:hover { color: #000 !important; }
+                    </style>
+
+                    <div class="row text-center" style="margin-bottom: 30px;">
+                        <a href="https://greenido.github.io/weather-4-bike/" target="_blank" class="project-card bg-weather">
+                            <h4>🌦️ Weather 4 Bike</h4>
+                            <p>Check weather conditions for your ride.</p>
+                        </a>
+                        <a href="https://season-app-mvp.fly.dev/" target="_blank" class="project-card bg-season">
+                            <h4>🥙 Season App</h4>
+                            <p>Find seasonal food and recipes.</p>
+                        </a>
+                        <a href="https://calories-tracker-4d5eb.web.app/" target="_blank" class="project-card bg-food">
+                            <h4>🥗 Track Your Food</h4>
+                            <p>Simple calorie and nutrition tracking.</p>
+                        </a>
+                        
+                        <a href="https://everesting-tool.vercel.app/" target="_blank" class="project-card bg-everest">
+                            <h4>⛰️ Everesting Tool</h4>
+                            <p>Calculate laps for your Everesting challenge.</p>
+                        </a>
+                        <a href="https://v0-strava-segment-website.vercel.app/" target="_blank" class="project-card bg-strava">
+                            <h4>🚴‍♂️ Strava Segment Explorer</h4>
+                            <p>Explore and analyze Strava segments.</p>
+                        </a>
+                        <a href="https://hwy80.vercel.app/" target="_blank" class="project-card bg-road">
+                            <h4>🚙 Road Conditions</h4>
+                            <p>Check road conditions to the snow.</p>
+                        </a>
+
+                        <a href="https://ido-green.appspot.com/pull-ups/pull-ups-game.html" target="_blank" class="project-card bg-pullups">
+                            <h4>💪🏼 Pull-Ups Game</h4>
+                            <p>Gamify your workout routine.</p>
+                        </a>
+                        <a href="https://greenido.wordpress.com/2025/08/04/monitor-your-linux-servers-like-a-pro-now-open-source-%f0%9f%8e%89/" target="_blank" class="project-card bg-linux">
+                            <h4>🖥️ Linux Monitoring</h4>
+                            <p>Monitor your servers like a pro.</p>
+                        </a>
+                    </div>
                     <div class="row text-center">
                         <a href="https://github.com/greenido" class="btn btn-info" role="button" target="_blank">GitHub</a>
                         <a href="http://ido-green.appspot.com/RoadShow.html#codehacking" class="btn btn-success" role="button">Older (real old) Code</a>
