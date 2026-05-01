@@ -25,6 +25,44 @@ gcloud app deploy app.yaml --project theProjectID --verbosity=debug
 npm run --prefix tests/ test
 ```
 
+### GitHub Actions Deploy
+
+The repository now includes a workflow that deploys to App Engine on every push to `master`:
+
+- Workflow: `.github/workflows/deploy-app-engine.yml`
+- Deploy command: `gcloud app deploy app.yaml --project="${GCP_PROJECT_ID}" --quiet`
+
+Set these GitHub repository secrets before relying on the workflow:
+
+- `GCP_PROJECT_ID`: your Google Cloud project ID.
+- `GCP_SA_KEY`: a JSON service account key for an account that can deploy App Engine versions.
+
+How to get `GCP_SA_KEY`:
+
+1. In Google Cloud, open IAM & Admin -> Service Accounts.
+2. Create a service account for GitHub Actions, or reuse an existing deploy account.
+3. Grant it permissions that can deploy App Engine versions. In most projects that means `App Engine Deployer`, plus `Service Account User` if your deploy uses a runtime service account.
+4. Open the service account, go to Keys, and create a new JSON key.
+5. Copy the full JSON file contents and save that exact JSON as the GitHub repository secret named `GCP_SA_KEY`.
+
+Example using the `gcloud` CLI:
+
+```bash
+gcloud iam service-accounts create github-deployer \
+  --display-name="GitHub App Engine Deployer"
+
+gcloud projects add-iam-policy-binding theProjectID \
+  --member="serviceAccount:github-deployer@theProjectID.iam.gserviceaccount.com" \
+  --role="roles/appengine.deployer"
+
+gcloud iam service-accounts keys create key.json \
+  --iam-account="github-deployer@theProjectID.iam.gserviceaccount.com"
+```
+
+Then open `key.json` and paste the full file content into the `GCP_SA_KEY` secret in GitHub.
+
+After adding the secrets, pushing to `master` will trigger an automatic deploy. You can also run the workflow manually from the Actions tab.
+
 ### PHP Runtime Upgrade (2025)
 
 App Engine Standard will stop accepting deployments with `php81` after 2025-12-31.

@@ -1011,6 +1011,21 @@
                             line-height: 1.2;
                             margin: 0;
                         }
+                        .project-category {
+                            margin-bottom: 28px;
+                        }
+                        .project-category-title {
+                            margin: 0 0 6px;
+                            color: #1f2a44;
+                            font-size: 20px;
+                            letter-spacing: 0.04em;
+                            text-transform: uppercase;
+                        }
+                        .project-category-copy {
+                            margin: 0 auto 12px;
+                            max-width: 720px;
+                            color: #5f6b7a;
+                        }
                         /* Different background colors for cards */
                         .bg-weather { background: linear-gradient(135deg, #3498db, #2980b9); }
                         .bg-season { background: linear-gradient(135deg, #2ecc71, #27ae60); }
@@ -1033,72 +1048,89 @@
                     </style>
 
                     <div class="row text-center" style="margin-bottom: 30px;">
-                        <a href="https://greenido.github.io/weather-4-bike/" target="_blank" class="project-card bg-weather">
-                            <h4>🌦️ Weather 4 Bike</h4>
-                            <p>Check weather conditions for your ride.</p>
-                        </a>
-                        <a href="https://season-app-mvp.fly.dev/" target="_blank" class="project-card bg-season">
-                            <h4>🥙 Season App</h4>
-                            <p>Find seasonal food and recipes.</p>
-                        </a>
-                        <a href="https://calories-tracker-4d5eb.web.app/" target="_blank" class="project-card bg-food">
-                            <h4>🥗 Track Your Food</h4>
-                            <p>Simple calorie and nutrition tracking.</p>
-                        </a>
-                        
-                        <a href="https://everesting-tool.vercel.app/" target="_blank" class="project-card bg-everest">
-                            <h4>⛰️ Everesting Tool</h4>
-                            <p>Calculate laps for your Everesting challenge.</p>
-                        </a>
-                        <a href="https://v0-strava-segment-website.vercel.app/" target="_blank" class="project-card bg-strava">
-                            <h4>🚴‍♂️ Strava Segment Explorer</h4>
-                            <p>Explore and analyze Strava segments.</p>
-                        </a>
-                        <a href="https://hwy80.vercel.app/" target="_blank" class="project-card bg-road">
-                            <h4>🚙 Road Conditions</h4>
-                            <p>Check road conditions to the snow.</p>
-                        </a>
-                        <a href="https://greenido.github.io/PowderCast/" target="_blank" class="project-card bg-powder">
-                            <h4>❄️ PowderCast</h4>
-                            <p>Forecast for powder snow conditions.</p>
-                        </a>
+                        <div class="project-category">
+                            <h3 class="project-category-title">Fitness &amp; Outdoors</h3>
+                            <p class="project-category-copy">Training tools, endurance planning, cycling utilities, and mountain condition helpers.</p>
+                            <a href="https://greenido.github.io/weather-4-bike/" target="_blank" class="project-card bg-weather">
+                                <h4>🌦️ Weather 4 Bike</h4>
+                                <p>Check weather conditions for your ride.</p>
+                            </a>
+                            <a href="https://everesting-tool.vercel.app/" target="_blank" class="project-card bg-everest">
+                                <h4>⛰️ Everesting Tool</h4>
+                                <p>Calculate laps for your Everesting challenge.</p>
+                            </a>
+                            <a href="https://v0-strava-segment-website.vercel.app/" target="_blank" class="project-card bg-strava">
+                                <h4>🚴‍♂️ Strava Segment Explorer</h4>
+                                <p>Explore and analyze Strava segments.</p>
+                            </a>
+                            <a href="https://hwy80.vercel.app/" target="_blank" class="project-card bg-road">
+                                <h4>🚙 Road Conditions</h4>
+                                <p>Check road conditions to the snow.</p>
+                            </a>
+                            <a href="https://greenido.github.io/PowderCast/" target="_blank" class="project-card bg-powder">
+                                <h4>❄️ PowderCast</h4>
+                                <p>Forecast for powder snow conditions.</p>
+                            </a>
+                            <a href="https://ido-green.appspot.com/pull-ups/pull-ups-game.html" target="_blank" class="project-card bg-pullups">
+                                <h4>💪🏼 Pull-Ups Game</h4>
+                                <p>Gamify your workout routine.</p>
+                            </a>
+                            <a href="https://greenido.github.io/MurphChallenge/" target="_blank" class="project-card bg-murph">
+                                <h4>🏋️ Murph Challenge</h4>
+                                <p>Track your Murph workout challenge.</p>
+                            </a>
+                            <a href="https://enduracoach.fly.dev/" target="_blank" class="project-card bg-endura">
+                                <h4>🏃 EnduraCoach</h4>
+                                <p>Ironman training coaching platform.</p>
+                            </a>
+                        </div>
 
-                        <a href="https://ido-green.appspot.com/pull-ups/pull-ups-game.html" target="_blank" class="project-card bg-pullups">
-                            <h4>💪🏼 Pull-Ups Game</h4>
-                            <p>Gamify your workout routine.</p>
-                        </a>
-                        <a href="https://greenido.wordpress.com/2025/08/04/monitor-your-linux-servers-like-a-pro-now-open-source-%f0%9f%8e%89/" target="_blank" class="project-card bg-linux">
-                            <h4>🖥️ Linux Monitoring</h4>
-                            <p>Monitor your servers like a pro.</p>
-                        </a>
-                        <a href="https://greenido.github.io/MurphChallenge/" target="_blank" class="project-card bg-murph">
-                            <h4>🏋️ Murph Challenge</h4>
-                            <p>Track your Murph workout challenge.</p>
-                        </a>
-                        <a href="https://github.com/greenido/CISA-alerts-bot" target="_blank" class="project-card bg-cisa">
-                            <h4>🛡️ CISA Cyber Alerts</h4>
-                            <p>Bot for tracking CISA security alerts.</p>
-                        </a>
-                        <a href="https://github.com/greenido/slack-2-notion-EOD-reports" target="_blank" class="project-card bg-slack">
-                            <h4>📝 Slack to Notion EOD</h4>
-                            <p>Sync Slack end-of-day reports to Notion.</p>
-                        </a>
-                        <a href="https://greenido.github.io/ai-security-compliance-news/" target="_blank" class="project-card bg-ai-sec">
-                            <h4>🤖 AI Security Compliance</h4>
-                            <p>News on AI security and compliance.</p>
-                        </a>
-                        <a href="https://gmailsurge.com/" target="_blank" class="project-card bg-gmail">
-                            <h4>📧 Gmail Surge</h4>
-                            <p>Send personalized emails directly from your Gmail</p>
-                        </a>
-                        <a href="https://enduracoach.fly.dev/" target="_blank" class="project-card bg-endura">
-                            <h4>🏃 EnduraCoach</h4>
-                            <p>Ironman training coaching platform.</p>
-                        </a>
-                        <a href="https://receipt-manager.fly.dev/" target="_blank" class="project-card bg-receipt">
-                            <h4>🧾 Receipt Manager</h4>
-                            <p>Organize and track your receipts.</p>
-                        </a>
+                        <div class="project-category">
+                            <h3 class="project-category-title">Food &amp; Personal Admin</h3>
+                            <p class="project-category-copy">Everyday apps for food choices, nutrition tracking, and keeping receipts under control.</p>
+                            <a href="https://season-app-mvp.fly.dev/" target="_blank" class="project-card bg-season">
+                                <h4>🥙 Season App</h4>
+                                <p>Find seasonal food and recipes.</p>
+                            </a>
+                            <a href="https://calories-tracker-4d5eb.web.app/" target="_blank" class="project-card bg-food">
+                                <h4>🥗 Track Your Food</h4>
+                                <p>Simple calorie and nutrition tracking.</p>
+                            </a>
+                            <a href="https://receipt-manager.fly.dev/" target="_blank" class="project-card bg-receipt">
+                                <h4>🧾 Receipt Manager</h4>
+                                <p>Organize and track your receipts.</p>
+                            </a>
+                        </div>
+
+                        <div class="project-category">
+                            <h3 class="project-category-title">DevOps, Security &amp; Infra</h3>
+                            <p class="project-category-copy">Operational tooling and security-focused projects for teams that run and defend production systems.</p>
+                            <a href="https://greenido.wordpress.com/2025/08/04/monitor-your-linux-servers-like-a-pro-now-open-source-%f0%9f%8e%89/" target="_blank" class="project-card bg-linux">
+                                <h4>🖥️ Linux Monitoring</h4>
+                                <p>Monitor your servers like a pro.</p>
+                            </a>
+                            <a href="https://github.com/greenido/CISA-alerts-bot" target="_blank" class="project-card bg-cisa">
+                                <h4>🛡️ CISA Cyber Alerts</h4>
+                                <p>Bot for tracking CISA security alerts.</p>
+                            </a>
+                            <a href="https://greenido.github.io/ai-security-compliance-news/" target="_blank" class="project-card bg-ai-sec">
+                                <h4>🤖 AI Security Compliance</h4>
+                                <p>News on AI security and compliance.</p>
+                            </a>
+                        </div>
+
+                        <div class="project-category">
+                            <h3 class="project-category-title">Productivity &amp; Automation</h3>
+                            <p class="project-category-copy">Workflow helpers for email and team reporting that remove repetitive manual work.</p>
+                            <a href="https://github.com/greenido/slack-2-notion-EOD-reports" target="_blank" class="project-card bg-slack">
+                                <h4>📝 Slack to Notion EOD</h4>
+                                <p>Sync Slack end-of-day reports to Notion.</p>
+                            </a>
+                            <a href="https://gmailsurge.com/" target="_blank" class="project-card bg-gmail">
+                                <h4>📧 Gmail Surge</h4>
+                                <p>Send personalized emails directly from your Gmail</p>
+                            </a>
+                        </div>
                     </div>
                     <div class="row text-center">
                         <a href="https://github.com/greenido" class="btn btn-info" role="button" target="_blank">GitHub</a>
