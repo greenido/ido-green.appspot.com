@@ -1,10 +1,48 @@
 runtime: php83  # Upgraded from php81 due to end-of-support on 2025-12-31. If php83 is not yet available in App Engine Standard, downgrade this to php82.
 
+# Only unmatched URLs reach PHP (see the catch-all handler at the bottom); every
+# real file is served by a static handler above it.
+entrypoint: serve not-found.php
+
+# Fallback for anything without an explicit expiration below.
+default_expiration: 7d
+
 handlers:
 - url: /
   static_files: www/index.html
   upload: www/index.html
+  expiration: 10m
+
+# HTML is revalidated often so content edits go live quickly.
+- url: /(.*\.html)$
+  static_files: www/\1
+  upload: www/(.*\.html)$
+  expiration: 10m
+
+# Crawler and PWA metadata changes should propagate quickly too.
+- url: /(robots\.txt|sitemap\.xml|manifest\.json)$
+  static_files: www/\1
+  upload: www/(robots\.txt|sitemap\.xml|manifest\.json)$
+  expiration: 1h
+
+# Images and fonts are only replaced by a deploy, so cache them hard.
+- url: /(.*\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot))$
+  static_files: www/\1
+  upload: www/(.*\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot))$
+  expiration: 365d
+
+# CSS/JS filenames are not content-hashed, so keep these shorter than the images.
+- url: /(css|js)/(.*)
+  static_files: www/\1/\2
+  upload: www/(css|js)/(.*)
+  expiration: 7d
 
 - url: /(.*)
   static_files: www/\1
   upload: www/(.*)
+
+# Anything that matched no static file falls through to PHP, which serves
+# www/404.html with a real 404 status. error_handlers is NOT used here: it does
+# not fire for URLs that match no handler.
+- url: /.*
+  script: auto
