@@ -1,27 +1,33 @@
 name: Testing with Jest CI
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [22.x]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install, build, and test
-      run: |
-        pwd
-        cd ido-green/tests/
-        npm install
-        npm test
-      env:
-        CI: true
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: ido-green/tests/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ido-green/tests
+        run: npm ci
+
+      - name: Run smoke tests
+        working-directory: ido-green/tests
+        run: npm test
+        env:
+          CI: true
