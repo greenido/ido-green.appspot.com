@@ -10,6 +10,11 @@
     <meta name="author" content="Ido Green | @greenido">
     <link rel="canonical" href="https://ido-green.appspot.com/" />
     
+    <!-- Fonts: loaded directly so they are not chained behind main.css -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap">
+
     <!-- Design System Styling -->
     <link href="css/main.css" rel="stylesheet">
     
@@ -68,7 +73,13 @@
                 <div class="hero-visual">
                     <div class="profile-container">
                         <div class="profile-image-fallback">
-                            <img src="img/about/ido-run-toro-400x400.jpg" alt="Ido Green Portrait" onError="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <picture>
+                                <source srcset="img/about/ido-run-toro-400x400.avif" type="image/avif">
+                                <source srcset="img/about/ido-run-toro-400x400.webp" type="image/webp">
+                                <img src="img/about/ido-run-toro-400x400.jpg" alt="Ido Green Portrait"
+                                     width="400" height="400" fetchpriority="high" decoding="async"
+                                     onError="this.style.display='none'; this.closest('picture').nextElementSibling.style.display='flex';">
+                            </picture>
                             <span style="display:none;">IG</span>
                         </div>
                     </div>
@@ -102,7 +113,7 @@
                         <div class="project-card-footer">Launch App</div>
                     </a>
 
-                    <a href="https://water-2-route.fly.dev/" target="_blank" rel="noopener" class="glass-card project-card fitness" id="project-wateronroute">
+                    <a href="https://water-2-route.fly.dev/" target="_blank" rel="noopener" class="glass-card project-card fitness" id="project-water2route">
                         <div class="project-card-header">
                             <span class="project-icon">💧</span>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -452,7 +463,12 @@
         <div class="container">
             <div class="glass-card book-layout">
                 <div class="book-visual">
-                    <img class="book-mockup" src="img/book.jpeg" alt="Web Workers: Multithreaded Programs in JavaScript Book Cover">
+                    <picture>
+                        <source srcset="img/book.avif" type="image/avif">
+                        <source srcset="img/book.webp" type="image/webp">
+                        <img class="book-mockup" src="img/book.jpeg" alt="Web Workers: Multithreaded Programs in JavaScript Book Cover"
+                             width="260" height="343" loading="lazy" decoding="async">
+                    </picture>
                 </div>
                 <div class="book-content">
                     <span class="book-tag">Published Book</span>
