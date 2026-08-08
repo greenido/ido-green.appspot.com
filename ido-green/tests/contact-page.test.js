@@ -11,16 +11,26 @@ describe('contact-page', () => {
     await expect(page.title()).resolves.toMatch('Ido Green - Contact Form');
   });
 
-  it('should offer a mailto link instead of a third-party form embed', async () => {
-    const href = await page.$eval('#contact-email', el => el.getAttribute('href'));
-    expect(href).toBe('mailto:greenido@gmail.com');
-  });
-
   it('should link out to LinkedIn and GitHub', async () => {
     const links = await page.$$eval('.contact-option', els => els.map(e => e.getAttribute('href')));
     expect(links).toEqual(expect.arrayContaining([
       'https://www.linkedin.com/in/greenido',
       'https://github.com/greenido'
     ]));
+  });
+
+  it('should not publish an email address anywhere on the page', async () => {
+    const { html, mailtos } = await page.evaluate(() => ({
+      html: document.documentElement.outerHTML,
+      mailtos: [...document.querySelectorAll('a[href^="mailto:"]')].length
+    }));
+
+    expect(mailtos).toBe(0);
+    expect(html).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
+  });
+
+  it('should not embed the old third-party form', async () => {
+    const html = await page.content();
+    expect(html).not.toContain('wufoo');
   });
 });
