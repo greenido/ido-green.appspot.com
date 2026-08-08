@@ -1,7 +1,10 @@
+const BASE = process.env.BASE_URL || 'http://localhost:8080';
+
 describe('bot-page', () => {
   jest.setTimeout(30000);
+
   beforeAll(async () => {
-    await page.goto('https://ido-green.appspot.com/bots.html');
+    await page.goto(`${BASE}/bots.html`, { waitUntil: 'domcontentloaded' });
   });
 
   it('should be titled "Ido Green - Bots"', async () => {

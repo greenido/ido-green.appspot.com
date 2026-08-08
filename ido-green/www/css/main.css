@@ -7,7 +7,8 @@
    1. Design Tokens & Root Configuration
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+/* Fonts are loaded via <link rel="preconnect"> + <link rel="stylesheet"> in each
+   page's <head>. Importing them here would chain the request behind this file. */
 
 :root {
   /* Fonts */
@@ -22,6 +23,7 @@
   
   --card-bg-light: rgba(255, 255, 255, 0.7);
   --card-border-light: rgba(0, 0, 0, 0.06);
+  --navbar-bg-light: rgba(255, 255, 255, 0.72);
   --card-shadow-light: 0 4px 20px rgba(0, 0, 0, 0.04);
   --card-shadow-hover-light: 0 12px 30px rgba(0, 0, 0, 0.08);
 
@@ -37,12 +39,13 @@
   
   --card-bg-dark: rgba(25, 28, 41, 0.6);
   --card-border-dark: rgba(255, 255, 255, 0.06);
+  --navbar-bg-dark: rgba(18, 21, 34, 0.72);
   --card-shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.3);
   --card-shadow-hover-dark: 0 12px 30px rgba(85, 100, 240, 0.15);
 
   --accent-primary-dark: oklch(72% 0.18 200); /* Neon Teal/Cyan */
   --accent-secondary-dark: oklch(68% 0.20 270); /* Neon Purple/Violet */
-  --accent-glow-dark: rgba(72%, 0.18, 200, 0.12);
+  --accent-glow-dark: oklch(72% 0.18 200 / 0.12);
 
   /* Resolve tokens dynamically (Defaulting to Dark Theme based on user choice) */
   --bg-color: var(--bg-color-dark);
@@ -53,6 +56,7 @@
   --card-border: var(--card-border-dark);
   --card-shadow: var(--card-shadow-dark);
   --card-shadow-hover: var(--card-shadow-hover-dark);
+  --navbar-bg: var(--navbar-bg-dark);
   --accent-primary: var(--accent-primary-dark);
   --accent-secondary: var(--accent-secondary-dark);
   --accent-glow: var(--accent-glow-dark);
@@ -67,6 +71,7 @@
     --card-border: light-dark(var(--card-border-light), var(--card-border-dark));
     --card-shadow: light-dark(var(--card-shadow-light), var(--card-shadow-dark));
     --card-shadow-hover: light-dark(var(--card-shadow-hover-light), var(--card-shadow-hover-dark));
+    --navbar-bg: light-dark(var(--navbar-bg-light), var(--navbar-bg-dark));
     --accent-primary: light-dark(var(--accent-primary-light), var(--accent-primary-dark));
     --accent-secondary: light-dark(var(--accent-secondary-light), var(--accent-secondary-dark));
     --accent-glow: light-dark(var(--accent-glow-light), var(--accent-glow-dark));
@@ -94,6 +99,7 @@
     --card-border: var(--card-border-light);
     --card-shadow: var(--card-shadow-light);
     --card-shadow-hover: var(--card-shadow-hover-light);
+    --navbar-bg: var(--navbar-bg-light);
     --accent-primary: var(--accent-primary-light);
     --accent-secondary: var(--accent-secondary-light);
     --accent-glow: var(--accent-glow-light);
@@ -160,6 +166,10 @@ h2::after {
   height: 4px;
   background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   border-radius: 2px;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .text-center h2::after {
@@ -283,15 +293,11 @@ section {
   left: 0;
   width: 100%;
   z-index: 1000;
-  background: rgba(var(--bg-color-dark), 0.15); /* Light glass tint */
+  background: var(--navbar-bg); /* Glass tint, follows the active color scheme */
   border-bottom: 1px solid var(--card-border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: background 0.3s ease, padding 0.3s ease;
-}
-
-:root:not([prefers-color-scheme="dark"]) .navbar {
-  background: rgba(255, 255, 255, 0.6);
 }
 
 .navbar .container {
@@ -533,6 +539,12 @@ section {
   font-weight: 800;
   font-size: 4rem;
   overflow: hidden;
+}
+
+/* <picture> is a wrapper only - let the <img> stay the direct flex child. */
+.profile-image-fallback picture,
+.book-visual picture {
+  display: contents;
 }
 
 .profile-image-fallback img {
@@ -807,6 +819,89 @@ section {
 /* ==========================================================================
    9. Book Section
    ========================================================================== */
+
+/* ==========================================================================
+   8b. Writing Section (posts fetched from the WordPress API)
+   ========================================================================== */
+
+.post-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.post-fallback {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.post-fallback a {
+  color: var(--accent-primary);
+}
+
+.post-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-primary);
+}
+
+.post-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--card-border);
+}
+
+.post-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--spacing-md);
+  gap: var(--spacing-xs);
+}
+
+.post-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+.post-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.post-excerpt {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin: 0;
+}
 
 .book-section {
   position: relative;

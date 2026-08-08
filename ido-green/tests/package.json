@@ -3,19 +3,18 @@
   "version": "1.0.0",
   "description": "Testing the basic stuff on the website: ido-green.appspot.com",
   "main": "sum.js",
-  "dependencies": {
-    "puppeteer": "^1.20.0"
-  },
   "devDependencies": {
-    "jest": "^24.9.0",
-    "jest-puppeteer": "^4.3.0"
+    "jest": "^29.7.0",
+    "jest-puppeteer": "^11.0.0",
+    "puppeteer": "^25.5.0"
   },
   "jest": {
     "verbose": true,
     "preset": "jest-puppeteer"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "serve": "node static-server.js"
   },
   "author": "Ido Green",
   "license": "MIT"

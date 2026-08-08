@@ -1,40 +1,15 @@
-
 copyFiles.sh
 
 node_modules/
-
 dist/
-
 *.jar
 
 Web-Workers-Examples/
-
 israel-air/
 
 .vscode/launch.json
+ido-green.appspot.com.code-workspace
 
 ido-green/www/ritza-il.html
-ido-green/tests/package-lock.json
-ido-green/tests/package-lock.json
-ido-green/.DS_Store
-ido-green/.DS_Store
-ido-green/.DS_Store
-ido-green/.DS_Store
-ido-green/www/.DS_Store
-ido-green/www/CloudEndpoints/.DS_Store
+
 .DS_Store
-.DS_Store
-ido-green/.DS_Store
-.DS_Store
-ido-green/.DS_Store
-.DS_Store
-ido-green/.DS_Store
-ido-green/.DS_Store
-.DS_Store
-.DS_Store
-ido-green/.DS_Store
-.DS_Store
-ido-green/.DS_Store
-ido-green.appspot.com.code-workspace
-ido-green/.DS_Store
-ido-green/.DS_Store
