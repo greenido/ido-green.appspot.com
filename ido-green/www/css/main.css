@@ -820,6 +820,89 @@ section {
    9. Book Section
    ========================================================================== */
 
+/* ==========================================================================
+   8b. Writing Section (posts fetched from the WordPress API)
+   ========================================================================== */
+
+.post-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.post-fallback {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.post-fallback a {
+  color: var(--accent-primary);
+}
+
+.post-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-primary);
+}
+
+.post-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--card-border);
+}
+
+.post-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--spacing-md);
+  gap: var(--spacing-xs);
+}
+
+.post-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+.post-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.post-excerpt {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .book-section {
   position: relative;
 }
