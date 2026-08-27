@@ -7,23 +7,35 @@ entrypoint: serve not-found.php
 # Fallback for anything without an explicit expiration below.
 default_expiration: 7d
 
+# The Google frontend gzips text responses, but without Vary the edge cache
+# keeps a SINGLE variant per URL. One request that omits Accept-Encoding (a bot,
+# a health check, a curl -I) stores the uncompressed copy and every visitor gets
+# it until the entry expires. Vary is set on the text handlers below for that
+# reason; images and fonts are already compressed, so splitting their cache
+# would cost hit rate for nothing.
 handlers:
 - url: /
   static_files: www/index.html
   upload: www/index.html
   expiration: 10m
+  http_headers:
+    Vary: Accept-Encoding
 
 # HTML is revalidated often so content edits go live quickly.
 - url: /(.*\.html)$
   static_files: www/\1
   upload: www/(.*\.html)$
   expiration: 10m
+  http_headers:
+    Vary: Accept-Encoding
 
 # Crawler and PWA metadata changes should propagate quickly too.
 - url: /(robots\.txt|sitemap\.xml|manifest\.json)$
   static_files: www/\1
   upload: www/(robots\.txt|sitemap\.xml|manifest\.json)$
   expiration: 1h
+  http_headers:
+    Vary: Accept-Encoding
 
 # Images and fonts are only replaced by a deploy, so cache them hard.
 - url: /(.*\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot))$
@@ -36,10 +48,19 @@ handlers:
   static_files: www/\1/\2
   upload: www/(css|js)/(.*)
   expiration: 7d
+  http_headers:
+    Vary: Accept-Encoding
 
-- url: /(.*)
+# Remaining real files (LICENSE, .json, .md, legacy assets). This REQUIRES a
+# file extension so that extensionless URLs fall through to the PHP handler
+# below. A static handler never falls through on a missing file: if this pattern
+# matched bare paths too, App Engine would answer /talks with its own generic
+# 404 page and www/404.html would never be reached.
+- url: /(.*\.[A-Za-z0-9]+)$
   static_files: www/\1
-  upload: www/(.*)
+  upload: www/(.*\.[A-Za-z0-9]+)$
+  http_headers:
+    Vary: Accept-Encoding
 
 # Anything that matched no static file falls through to PHP, which serves
 # www/404.html with a real 404 status. error_handlers is NOT used here: it does
