@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupMobileNav();
   setupScrollSpy();
   loadLatestPosts();
+  setupProjectFilter();
+  loadRepoStats();
 });
 
 /**
@@ -187,4 +189,113 @@ function decodeEntities(text) {
 
 function truncate(text, max) {
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+}
+
+/**
+ * Project filtering and search.
+ *
+ * The cards are already in the HTML (rendered at build time from
+ * data/projects.json), so this only shows and hides them. The controls ship
+ * hidden and are revealed here: without JS an inert search box would be worse
+ * than none at all.
+ */
+function setupProjectFilter() {
+  const controls = document.getElementById('project-controls');
+  const input = document.getElementById('project-search-input');
+  const count = document.getElementById('project-result-count');
+  if (!controls || !input || !count) return;
+
+  const cards = [...document.querySelectorAll('.project-card')];
+  const wrappers = [...document.querySelectorAll('.project-category-wrapper')];
+  const chips = [...controls.querySelectorAll('.filter-chip')];
+  if (!cards.length) return;
+
+  // Build the haystack once; searching re-reads it on every keystroke.
+  const haystacks = new Map(cards.map(card => [card, [
+    card.querySelector('.project-card-title')?.textContent || '',
+    card.querySelector('.project-card-description')?.textContent || '',
+    card.dataset.tags || ''
+  ].join(' ').toLowerCase()]));
+
+  let category = 'all';
+
+  function apply() {
+    const query = input.value.trim().toLowerCase();
+    let visible = 0;
+
+    cards.forEach(card => {
+      const matchesCategory = category === 'all' || card.dataset.category === category;
+      const matchesQuery = !query || haystacks.get(card).includes(query);
+      const show = matchesCategory && matchesQuery;
+      card.hidden = !show;
+      if (show) visible += 1;
+    });
+
+    // Collapse a category heading once everything under it is filtered out.
+    wrappers.forEach(wrapper => {
+      const anyVisible = [...wrapper.querySelectorAll('.project-card')].some(c => !c.hidden);
+      wrapper.hidden = !anyVisible;
+    });
+
+    if (!query && category === 'all') {
+      count.textContent = '';
+    } else if (visible === 0) {
+      count.textContent = 'No projects match that search.';
+    } else {
+      count.textContent = `Showing ${visible} of ${cards.length} projects`;
+    }
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.toggle('active', c === chip));
+      category = chip.dataset.filter;
+      apply();
+    });
+  });
+
+  input.addEventListener('input', apply);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && input.value) {
+      input.value = '';
+      apply();
+    }
+  });
+
+  controls.hidden = false;
+}
+
+/**
+ * Decorates the source links with live star counts.
+ *
+ * One listing request covers every linked repo instead of one call per card:
+ * unauthenticated GitHub allows 60 requests/hour per IP, and eleven calls a
+ * page view would burn a visitor's quota in six refreshes. If the request fails
+ * or the quota is gone, the plain "Source" links stay exactly as rendered -
+ * the counts are a bonus, never the reason the link is there.
+ */
+const GITHUB_USER = 'greenido';
+
+function loadRepoStats() {
+  const links = [...document.querySelectorAll('.project-repo[data-repo]')];
+  if (!links.length) return;
+
+  fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`)
+    .then(res => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
+    .then(repos => {
+      if (!Array.isArray(repos)) return;
+      const stars = new Map(repos.map(r => [r.full_name.toLowerCase(), r.stargazers_count]));
+
+      links.forEach(link => {
+        const count = stars.get(link.dataset.repo.toLowerCase());
+        if (!count) return; // Missing, or genuinely zero - nothing worth showing.
+        const badge = document.createElement('span');
+        badge.className = 'repo-stars';
+        badge.textContent = ` ★ ${count}`;
+        link.appendChild(badge);
+      });
+    })
+    .catch(() => {
+      // Rate limited, offline, or the listing moved - the links still work.
+    });
 }

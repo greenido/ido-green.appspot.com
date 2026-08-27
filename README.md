@@ -8,6 +8,27 @@ My projects, demos and other fun stuff
 - [Font-Awesome](http://fortawesome.github.io/Font-Awesome/icons/#web-application)
 - https://fontawesome.com/v4.7.0/icons/ -- http://fontawesome.io/icons/
 
+## Adding or Editing a Project 🧩
+
+The project cards on the homepage are generated from `ido-green/www/data/projects.json`.
+**Do not hand-edit the cards in `index.html`** - anything between the
+`PROJECTS:START` / `PROJECTS:END` markers is overwritten.
+
+```bash
+# 1. edit ido-green/www/data/projects.json
+# 2. regenerate the markup
+node ido-green/tools/build-projects.js
+```
+
+Each entry takes `id`, `title`, `description`, `icon`, `category`, `url`, `cta`,
+an optional `repo` (`owner/name` - adds a Source link and a live star count),
+and `tags` (searchable, but not displayed).
+
+Rendering happens at build time so the projects are in the served HTML for
+crawlers and no-JS visitors; the search and category filter are layered on top.
+A test fails if `index.html` is out of date with the JSON, so CI catches a
+forgotten rebuild.
+
 ## Bugs and Issues 🚨
 
 Have a bug or an issue with this theme? [Open a new issue](https://github.com/greenido/ido-green.appspot.com/issues) here on GitHub.
