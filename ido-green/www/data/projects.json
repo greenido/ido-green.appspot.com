@@ -1,0 +1,301 @@
+{
+  "categories": [
+    {
+      "id": "fitness",
+      "title": "Fitness & Outdoors",
+      "description": "Training tools, endurance calculators, cycling utilities, and mountain conditions monitoring helpers."
+    },
+    {
+      "id": "food",
+      "title": "Food & Personal Admin",
+      "description": "Micro-apps for seasonal cooking, quick calorie/nutrition tracking, and organizing expense receipts."
+    },
+    {
+      "id": "devops",
+      "title": "DevOps, Security & Infra",
+      "description": "Operational helper utilities and security tools for tracking servers, updates, and AI compliance standards."
+    },
+    {
+      "id": "productivity",
+      "title": "Productivity & Automation",
+      "description": "Automations removing manual steps from daily routines, reporting, news aggregation, and email distribution."
+    }
+  ],
+  "projects": [
+    {
+      "id": "weather4bike",
+      "title": "Weather 4 Bike",
+      "description": "Real-time and forecasted weather condition checklist tailored for cycling enthusiasts.",
+      "icon": "🌦️",
+      "category": "fitness",
+      "url": "https://greenido.github.io/weather-4-bike/",
+      "cta": "Launch App",
+      "repo": "greenido/weather-4-bike",
+      "tags": [
+        "weather",
+        "cycling",
+        "maps"
+      ]
+    },
+    {
+      "id": "water2route",
+      "title": "GPX Water Mapper",
+      "description": "Enrich GPX routes with nearby water points from OpenStreetMap, plus coffee and weather along the way.",
+      "icon": "💧",
+      "category": "fitness",
+      "url": "https://water-2-route.fly.dev/",
+      "cta": "Launch App",
+      "repo": "greenido/water-on-route",
+      "tags": [
+        "gpx",
+        "cycling",
+        "maps"
+      ]
+    },
+    {
+      "id": "everesting",
+      "title": "Everesting Tool",
+      "description": "Calculate elevation target metrics and laps needed to complete your next Everesting ride.",
+      "icon": "⛰️",
+      "category": "fitness",
+      "url": "https://everesting-tool.vercel.app/",
+      "cta": "Launch App",
+      "tags": [
+        "cycling",
+        "calculator"
+      ]
+    },
+    {
+      "id": "strava",
+      "title": "Strava Segment Explorer",
+      "description": "Deep dive into local Strava segments, analyzing performance gradients and efforts.",
+      "icon": "🚴‍♂️",
+      "category": "fitness",
+      "url": "https://v0-strava-segment-website.vercel.app/",
+      "cta": "Launch App",
+      "tags": [
+        "strava",
+        "cycling",
+        "api"
+      ]
+    },
+    {
+      "id": "hwy80",
+      "title": "Road Conditions",
+      "description": "Check real-time webcams and snow chains requirements on Interstate 80 heading to Lake Tahoe.",
+      "icon": "🚙",
+      "category": "fitness",
+      "url": "https://hwy80.vercel.app/",
+      "cta": "Launch App",
+      "tags": [
+        "weather",
+        "driving",
+        "maps"
+      ]
+    },
+    {
+      "id": "powdercast",
+      "title": "PowderCast",
+      "description": "Curated forecasts targeting optimal powder conditions for skiers and snowboarders.",
+      "icon": "❄️",
+      "category": "fitness",
+      "url": "https://greenido.github.io/PowderCast/",
+      "cta": "Launch App",
+      "repo": "greenido/PowderCast",
+      "tags": [
+        "weather",
+        "skiing",
+        "forecast"
+      ]
+    },
+    {
+      "id": "pullups",
+      "title": "Pull-Ups Game",
+      "description": "Add gamified tracker targets to your routine and see how you rank against workout limits.",
+      "icon": "💪",
+      "category": "fitness",
+      "url": "pull-ups/pull-ups-game.html",
+      "cta": "Launch Game",
+      "tags": [
+        "game",
+        "fitness"
+      ]
+    },
+    {
+      "id": "murph",
+      "title": "Murph Challenge",
+      "description": "A high-fidelity tracker dedicated to finishing the rigorous crossfit Murph workout.",
+      "icon": "🏋️",
+      "category": "fitness",
+      "url": "https://greenido.github.io/MurphChallenge/",
+      "cta": "Launch App",
+      "repo": "greenido/MurphChallenge",
+      "tags": [
+        "fitness",
+        "training"
+      ]
+    },
+    {
+      "id": "endura",
+      "title": "EnduraCoach",
+      "description": "Custom analytics dashboard built to optimize Ironman and triathlon coaching programs.",
+      "icon": "🏃",
+      "category": "fitness",
+      "url": "https://enduracoach.fly.dev/",
+      "cta": "Launch App",
+      "tags": [
+        "ai",
+        "coaching",
+        "running"
+      ]
+    },
+    {
+      "id": "pace",
+      "title": "Pace Calculator",
+      "description": "Plan target race pace splits and see expected finish times across multiple distances.",
+      "icon": "⏱️",
+      "category": "fitness",
+      "url": "https://greenido.github.io/running-pace-calc/",
+      "cta": "Launch App",
+      "repo": "greenido/running-pace-calc",
+      "tags": [
+        "running",
+        "calculator"
+      ]
+    },
+    {
+      "id": "season",
+      "title": "Season App",
+      "description": "Eat sustainably. Find seasonal foods growing locally near you and discover fresh recipes.",
+      "icon": "🥙",
+      "category": "food",
+      "url": "https://season-app-mvp.fly.dev/",
+      "cta": "Launch App",
+      "tags": [
+        "food",
+        "sustainability"
+      ]
+    },
+    {
+      "id": "foodtracker",
+      "title": "Track Your Food",
+      "description": "A clean, ultra-responsive logging system for tracking calories, macros, and hydration.",
+      "icon": "🥗",
+      "category": "food",
+      "url": "https://calories-tracker-4d5eb.web.app/",
+      "cta": "Launch App",
+      "tags": [
+        "food",
+        "tracking",
+        "health"
+      ]
+    },
+    {
+      "id": "receipt",
+      "title": "Receipt Manager",
+      "description": "Quick expense organizer. Scan, organize, and store tax receipts cleanly in the cloud.",
+      "icon": "🧾",
+      "category": "food",
+      "url": "https://receipt-manager.fly.dev/",
+      "cta": "Launch App",
+      "tags": [
+        "expenses",
+        "ocr",
+        "automation"
+      ]
+    },
+    {
+      "id": "linux",
+      "title": "Linux Monitoring",
+      "description": "An open-source, light shell hook system built to monitor health indicators on Linux servers.",
+      "icon": "🖥️",
+      "category": "devops",
+      "url": "https://greenido.wordpress.com/2025/08/04/monitor-your-linux-servers-like-a-pro-now-open-source-%f0%9f%8e%89/",
+      "cta": "Read Post",
+      "repo": "greenido/linux-monitoring",
+      "tags": [
+        "monitoring",
+        "devops",
+        "alerts"
+      ]
+    },
+    {
+      "id": "cisa",
+      "title": "CISA Cyber Alerts Bot",
+      "description": "Automated alerting system notifying team feeds on critical vulnerabilities logged by CISA.",
+      "icon": "🛡️",
+      "category": "devops",
+      "url": "https://github.com/greenido/CISA-alerts-bot",
+      "cta": "View GitHub",
+      "repo": "greenido/CISA-alerts-bot",
+      "tags": [
+        "security",
+        "bot",
+        "alerts"
+      ]
+    },
+    {
+      "id": "aisecurity",
+      "title": "AI Security Compliance",
+      "description": "A curated index tracking developments, whitepapers, and regulatory updates in AI safety.",
+      "icon": "🤖",
+      "category": "devops",
+      "url": "https://greenido.github.io/ai-security-compliance-news/",
+      "cta": "Launch Site",
+      "repo": "greenido/ai-security-compliance-news",
+      "tags": [
+        "ai",
+        "security",
+        "compliance",
+        "news"
+      ]
+    },
+    {
+      "id": "slack2notion",
+      "title": "Slack to Notion EOD",
+      "description": "Automate team logs by parsing daily status entries from Slack straight into a database in Notion.",
+      "icon": "📝",
+      "category": "productivity",
+      "url": "https://github.com/greenido/slack-2-notion-EOD-reports",
+      "cta": "View GitHub",
+      "repo": "greenido/slack-2-notion-EOD-reports",
+      "tags": [
+        "slack",
+        "notion",
+        "automation",
+        "bot"
+      ]
+    },
+    {
+      "id": "techmeme",
+      "title": "Techmeme to Telegram/Slack",
+      "description": "Receive real-time, highly-curated technology headlines aggregated straight into Slack or Telegram channels.",
+      "icon": "📰",
+      "category": "productivity",
+      "url": "https://github.com/greenido/techmeme-2-slack",
+      "cta": "View GitHub",
+      "repo": "greenido/techmeme-2-slack",
+      "tags": [
+        "slack",
+        "telegram",
+        "news",
+        "bot"
+      ]
+    },
+    {
+      "id": "gmailsurge",
+      "title": "Gmail Surge",
+      "description": "Secure, lightweight mailmerge helper allowing customizable emails straight from your Gmail dashboard.",
+      "icon": "📧",
+      "category": "productivity",
+      "url": "https://gmailsurge.com/",
+      "cta": "Launch App",
+      "repo": "greenido/Gmail-Surge",
+      "tags": [
+        "gmail",
+        "email",
+        "chrome-extension"
+      ]
+    }
+  ]
+}
