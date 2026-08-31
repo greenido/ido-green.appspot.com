@@ -251,6 +251,22 @@
       ]
     },
     {
+      "id": "wacrawl",
+      "title": "WaCrawl Dashboard",
+      "description": "Local WhatsApp analytics for the WaCrawl archive: charts, search, media, and conversation insights — all on your machine.",
+      "icon": "💬",
+      "category": "productivity",
+      "url": "https://greenido.dev/2026/07/03/unlocking-whatsapp-your-local-analytics-dashboard/",
+      "cta": "Read Post",
+      "repo": "greenido/wacrawl-ui",
+      "tags": [
+        "whatsapp",
+        "analytics",
+        "privacy",
+        "dashboard"
+      ]
+    },
+    {
       "id": "slack2notion",
       "title": "Slack to Notion EOD",
       "description": "Automate team logs by parsing daily status entries from Slack straight into a database in Notion.",
