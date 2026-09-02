@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadLatestPosts();
   setupProjectFilter();
   loadRepoStats();
+  setupEasterEgg();
 });
 
 /**
@@ -240,7 +241,9 @@ function setupProjectFilter() {
     if (!query && category === 'all') {
       count.textContent = '';
     } else if (visible === 0) {
-      count.textContent = 'No projects match that search.';
+      // The nudge toward the hidden climb. Only ever seen by someone who
+      // searched for something that is not here, which is the right audience.
+      count.textContent = 'No projects match that search. Try the height of Everest, in metres.';
     } else {
       count.textContent = `Showing ${visible} of ${cards.length} projects`;
     }
@@ -298,4 +301,71 @@ function loadRepoStats() {
     .catch(() => {
       // Rate limited, offline, or the listing moved - the links still work.
     });
+}
+
+/**
+ * The hidden climb.
+ *
+ * Two ways in, because one is never enough: type the summit height into the
+ * project search (works on a phone, where the Konami code cannot), or enter
+ * the Konami code itself (for the people who always try). Either way the game
+ * is fetched on demand - js/easter-egg.js is never part of a normal page load.
+ */
+const EGG_WORD = '8848';
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+                'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+function setupEasterEgg() {
+  let loading = null;
+
+  function launch() {
+    if (window.startEverestingEgg) {
+      window.startEverestingEgg();
+      return;
+    }
+    // One in-flight request even if both triggers fire together.
+    if (!loading) {
+      loading = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'js/easter-egg.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      }).catch(() => { loading = null; });
+    }
+    loading.then(() => window.startEverestingEgg && window.startEverestingEgg());
+  }
+
+  const input = document.getElementById('project-search-input');
+  if (input) {
+    input.addEventListener('input', () => {
+      if (input.value.trim().toLowerCase() !== EGG_WORD) return;
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.blur();
+      launch();
+    });
+  }
+
+  let progress = 0;
+  document.addEventListener('keydown', e => {
+    // Ignore the sequence while someone is genuinely typing in a field.
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    const want = KONAMI[progress];
+    const got = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    progress = (got === want) ? progress + 1 : (got === KONAMI[0] ? 1 : 0);
+
+    if (progress === KONAMI.length) {
+      progress = 0;
+      launch();
+    }
+  });
+
+  console.log(
+    '%cThere is a climb hidden on this page.%c\nSearch the projects for the height of Everest in metres. Or try the Konami code.',
+    'font: 600 14px system-ui; color: #4fd1e0',
+    'font: 13px system-ui; color: #8b95ab'
+  );
 }
