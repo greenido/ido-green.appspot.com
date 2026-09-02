@@ -29,6 +29,39 @@ crawlers and no-JS visitors; the search and category filter are layered on top.
 A test fails if `index.html` is out of date with the JSON, so CI catches a
 forgotten rebuild.
 
+## The Hidden Climb 🏔️
+
+There is an easter egg on the homepage: a small canvas game called **Everesting**,
+where you climb 8,848m without hitting the rock.
+
+Two ways in:
+
+- Type `8848` into the project search box (works on a phone).
+- Enter the Konami code: `↑ ↑ ↓ ↓ ← → ← → B A` (desktop keyboard).
+
+`www/js/easter-egg.js` is **not** part of a normal page load. It is fetched only
+when a trigger fires, so the homepage pays nothing for it. The game renders into
+a modal `<dialog>` over the page rather than its own URL, which keeps it out of
+the sitemap and out of Google. Best altitude is kept in `localStorage`.
+
+A failed project search hints at it, and `main.js` logs a nudge to the console -
+otherwise nobody would ever find it.
+
+Two things to know if you touch it:
+
+- **Canvas `ctx.font` cannot parse CSS `var()`.** A font string containing one
+  is rejected whole and silently falls back to 10px sans-serif. Use the literal
+  family names in `DISPLAY_FONT` / `BODY_FONT`.
+- **A `<dialog>` defaults to `position: absolute`**, which on a long page parks
+  it against the document instead of the viewport. It is pinned `fixed`.
+
+Run the tests before shipping a change to it - and stop any preview server on
+port 8080 first, or `jest-puppeteer` blocks on an interactive prompt:
+
+```bash
+lsof -ti:8080 | xargs kill -9; cd ido-green/tests && npm test
+```
+
 ## Bugs and Issues 🚨
 
 Have a bug or an issue with this theme? [Open a new issue](https://github.com/greenido/ido-green.appspot.com/issues) here on GitHub.
