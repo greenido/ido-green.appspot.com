@@ -37,7 +37,10 @@ where you climb 8,848m without hitting the rock.
 Two ways in:
 
 - Type `8848` into the project search box (works on a phone).
-- Enter the Konami code: `↑ ↑ ↓ ↓ ← → ← → B A` (desktop keyboard).
+- Type `8848` anywhere on the page with no field focused (desktop keyboard).
+
+One secret, two ways in. It replaced a ten-key Konami sequence: a single short
+secret is easier to remember, and easier to hint at, than two different ones.
 
 `www/js/easter-egg.js` is **not** part of a normal page load. It is fetched only
 when a trigger fires, so the homepage pays nothing for it. The game renders into
@@ -75,6 +78,28 @@ The same test file also guards two things that are easy to regress:
   about 210KB more than the production ones.
 - **Every third-party script is version-pinned.** `@latest` and bare package
   paths let a CDN change what the page runs between two visits.
+
+## Asset Versioning ⚠️
+
+`app.yaml` caches `/css/` and `/js/` for **seven days**, so an unversioned asset
+URL cannot be updated by a deploy. Worse, the edge keys on
+`Vary: Accept-Encoding`, so it goes stale *per encoding variant* - a deploy can
+look live to `curl` while every Chrome visitor still runs the old file, because
+Chrome is the only client sending `zstd`. That is exactly how the easter egg
+shipped and stayed dead.
+
+`tools/version-assets.js` stamps a content hash onto every local css/js
+reference. A hashed URL has never been cached, so a deploy lands immediately and
+the seven day cache stays a benefit.
+
+**Run it after any change to `www/css/` or `www/js/`:**
+
+```bash
+node ido-green/tools/build-projects.js && node ido-green/tools/version-assets.js
+```
+
+`tests/assets.test.js` fails if any stamp has drifted from its file, so a
+forgotten run cannot reach production.
 
 ## Bugs and Issues 🚨
 

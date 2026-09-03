@@ -306,14 +306,15 @@ function loadRepoStats() {
 /**
  * The hidden climb.
  *
- * Two ways in, because one is never enough: type the summit height into the
- * project search (works on a phone, where the Konami code cannot), or enter
- * the Konami code itself (for the people who always try). Either way the game
- * is fetched on demand - js/easter-egg.js is never part of a normal page load.
+ * One secret, two ways to enter it: type the summit height into the project
+ * search (the path that works on a phone), or just type it anywhere on the
+ * page with nothing focused. It replaced a ten-key Konami sequence - a single
+ * short secret is easier to remember, and easier to hint at, than two.
+ *
+ * Either way the game is fetched on demand: js/easter-egg.js is never part of
+ * a normal page load.
  */
 const EGG_WORD = '8848';
-const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-                'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
 function setupEasterEgg() {
   let loading = null;
@@ -327,7 +328,7 @@ function setupEasterEgg() {
     if (!loading) {
       loading = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'js/easter-egg.js';
+        script.src = '/js/easter-egg.js?v=0de9f912';
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
@@ -347,24 +348,25 @@ function setupEasterEgg() {
     });
   }
 
-  let progress = 0;
+  // A rolling buffer of the last few keys, so the secret can be typed anywhere
+  // on the page without a field focused.
+  let typed = '';
   document.addEventListener('keydown', e => {
-    // Ignore the sequence while someone is genuinely typing in a field.
+    // Ignore it while someone is genuinely typing into a field - the search box
+    // has its own handler above.
     const tag = document.activeElement && document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key.length !== 1) return;
 
-    const want = KONAMI[progress];
-    const got = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    progress = (got === want) ? progress + 1 : (got === KONAMI[0] ? 1 : 0);
-
-    if (progress === KONAMI.length) {
-      progress = 0;
+    typed = (typed + e.key).slice(-EGG_WORD.length);
+    if (typed === EGG_WORD) {
+      typed = '';
       launch();
     }
   });
 
   console.log(
-    '%cThere is a climb hidden on this page.%c\nSearch the projects for the height of Everest in metres. Or try the Konami code.',
+    '%cThere is a climb hidden on this page.%c\nType the height of Everest in metres - in the project search, or anywhere on this page.',
     'font: 600 14px system-ui; color: #4fd1e0',
     'font: 13px system-ui; color: #8b95ab'
   );
