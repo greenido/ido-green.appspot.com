@@ -62,6 +62,20 @@ port 8080 first, or `jest-puppeteer` blocks on an interactive prompt:
 lsof -ti:8080 | xargs kill -9; cd ido-green/tests && npm test
 ```
 
+## Everything Under `www/` Is Public 🔓
+
+`app.yaml` serves `ido-green/www` as the web root, so anything dropped there is
+a live 200 - build config included. Docs live in `ido-green/docs/` for that
+reason, and `tests/assets.test.js` fails the build if a `package.json`,
+`Gruntfile.js`, `.env` or stray `.md` reappears under `www/`.
+
+The same test file also guards two things that are easy to regress:
+
+- **No React development builds.** They carry the warning apparatus and cost
+  about 210KB more than the production ones.
+- **Every third-party script is version-pinned.** `@latest` and bare package
+  paths let a CDN change what the page runs between two visits.
+
 ## Bugs and Issues 🚨
 
 Have a bug or an issue with this theme? [Open a new issue](https://github.com/greenido/ido-green.appspot.com/issues) here on GitHub.
