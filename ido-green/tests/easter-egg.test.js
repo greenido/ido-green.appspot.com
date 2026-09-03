@@ -42,16 +42,27 @@ describe('the hidden climb', () => {
     expect(left).toBe('');
   });
 
-  it('opens on the Konami code', async () => {
-    // The listener ignores the sequence while a field has focus, so make sure
-    // nothing is focused first.
+  it('opens when the same secret is typed anywhere on the page', async () => {
+    // The listener stands down while a field has focus, so make sure nothing is.
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
-    for (const key of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-                       'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']) {
-      await page.keyboard.press(key);
-    }
+    for (const key of ['8', '8', '4', '8']) await page.keyboard.press(key);
     await page.waitForSelector(`${EGG}[open]`, { timeout: 5000 });
     expect((await eggState()).open).toBe(true);
+  });
+
+  it('ignores the secret while a text field has focus', async () => {
+    // Otherwise typing 8848 into any input on the page would fire it twice:
+    // once from the search handler and once from the page-wide listener.
+    await page.focus('#project-search-input');
+    const fired = await page.evaluate(() => {
+      let count = 0;
+      const real = window.startEverestingEgg;
+      window.startEverestingEgg = () => { count++; };
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '8', bubbles: true }));
+      window.startEverestingEgg = real;
+      return count;
+    });
+    expect(fired).toBe(0);
   });
 
   it('actually runs the climb once started', async () => {

@@ -46,6 +46,31 @@ describe('served assets', () => {
     expect(broken).toEqual([]);
   });
 
+  it('keeps every ?v= asset stamp matching the file it points at', () => {
+    // app.yaml caches /css/ and /js/ for seven days, so an unversioned URL
+    // cannot be updated by a deploy - and because the edge keys on
+    // Vary: Accept-Encoding it goes stale per encoding variant, which is how a
+    // shipped change reached curl but not Chrome. A stamp that has drifted from
+    // its file is the same bug wearing a version number, so fail on it here.
+    const crypto = require('crypto');
+    const stale = [];
+    const files = [...pages, path.join(WWW, 'js', 'main.js')].filter(f => fs.existsSync(f));
+
+    files.forEach(file => {
+      const src = fs.readFileSync(file, 'utf8');
+      for (const m of src.matchAll(/["']((\/?(?:\.\.\/)*(?:css|js)\/[A-Za-z0-9_.\/-]+\.(?:css|js)))\?v=([a-f0-9]+)["']/g)) {
+        const target = m[2].startsWith('/')
+          ? path.join(WWW, m[2])
+          : path.resolve(path.dirname(file), m[2]);
+        if (!fs.existsSync(target)) { stale.push(`${rel(file)} -> ${m[2]} (missing)`); continue; }
+        const want = crypto.createHash('sha1').update(fs.readFileSync(target)).digest('hex').slice(0, 8);
+        if (want !== m[3]) stale.push(`${rel(file)} -> ${m[2]} stamped ${m[3]}, content is ${want}`);
+      }
+    });
+
+    expect(stale).toEqual([]);
+  });
+
   it('ships no React development builds', () => {
     // The development bundles carry the whole warning apparatus and cost about
     // 210KB more than the production ones, for nothing a visitor can use.
