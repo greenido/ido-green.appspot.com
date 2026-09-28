@@ -328,7 +328,7 @@ function setupEasterEgg() {
     if (!loading) {
       loading = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = '/js/easter-egg.js?v=0de9f912';
+        script.src = '/js/easter-egg.js?v=6467f086';
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);

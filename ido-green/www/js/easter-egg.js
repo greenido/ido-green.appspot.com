@@ -28,7 +28,15 @@
     '#everesting-egg{position:fixed;inset:0;margin:0;border:0;padding:0;width:100vw;height:100%;height:100dvh;max-width:100vw;max-height:100dvh;background:#05070f;overflow:hidden;overscroll-behavior:contain;color:#e9edf7;font-family:var(--font-sans,system-ui,sans-serif)}',
     '#everesting-egg::backdrop{background:rgba(3,5,12,.92)}',
     '#everesting-egg canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}',
-    '#everesting-egg .egg-close{position:absolute;top:14px;right:14px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(10,14,26,.6);color:#e9edf7;font-size:20px;line-height:1;cursor:pointer;backdrop-filter:blur(8px)}',
+    // env() only reports a real notch on a page with viewport-fit=cover, so this
+    // also carries a flat offset on a phone, where the readout sat under the
+    // browser's own top chrome. The game measures it off this hidden probe -
+    // getComputedStyle cannot resolve a calc(env()) custom property, but it can
+    // resolve a used height.
+    '#everesting-egg .egg-inset{position:absolute;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none}',
+    '@media (max-width:640px){#everesting-egg .egg-inset{height:calc(env(safe-area-inset-top,0px) + 30px)}}',
+    '#everesting-egg .egg-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(10,14,26,.6);color:#e9edf7;font-size:20px;line-height:1;cursor:pointer;backdrop-filter:blur(8px)}',
+    '@media (max-width:640px){#everesting-egg .egg-close{top:calc(env(safe-area-inset-top,0px) + 30px)}}',
     '#everesting-egg .egg-close:hover{background:rgba(30,38,60,.8)}',
     '#everesting-egg .egg-close:focus-visible{outline:2px solid oklch(72% .18 200);outline-offset:2px}'
   ].join('');
@@ -68,6 +76,7 @@
     var last = 0;
     var raf = 0;
     var running = false;
+    var topInset = 0;         // px the HUD drops by to clear the phone's top edge
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -76,6 +85,11 @@
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Re-measured here rather than once at mount: the safe area and the
+      // breakpoint both change when the phone is turned.
+      var probe = canvas.parentNode && canvas.parentNode.querySelector('.egg-inset');
+      topInset = probe ? probe.getBoundingClientRect().height : 0;
     }
 
     // The playfield is a fixed-width lane centred in the canvas, so a wide
@@ -339,15 +353,16 @@
       ctx.textAlign = 'left';
       ctx.fillStyle = '#e9edf7';
       ctx.font = '600 30px ' + DISPLAY_FONT;
-      ctx.fillText(metres(alt), 20, 46);
+      ctx.fillText(metres(alt), 20, topInset + 46);
 
       ctx.fillStyle = 'rgba(233,237,247,.55)';
       ctx.font = '500 13px ' + BODY_FONT;
-      ctx.fillText('of ' + metres(SUMMIT_M) + (best ? '   ·   best ' + metres(best) : ''), 20, 68);
+      ctx.fillText('of ' + metres(SUMMIT_M) + (best ? '   ·   best ' + metres(best) : ''), 20, topInset + 68);
 
       // Vertical progress rail down the right edge - you can see the summit
-      // coming, which is most of the reason to keep going.
-      var railX = W - 26, railTop = 40, railH = H - 120;
+      // coming, which is most of the reason to keep going. Its foot stays put
+      // while its head follows the readout down.
+      var railX = W - 26, railTop = topInset + 40, railH = H - 80 - railTop;
       ctx.strokeStyle = 'rgba(255,255,255,.12)';
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
@@ -514,6 +529,11 @@
     // starting it. The canvas takes focus instead; Tab still reaches the button.
     canvas.tabIndex = -1;
 
+    var inset = document.createElement('div');
+    inset.className = 'egg-inset';
+    inset.setAttribute('aria-hidden', 'true');
+
+    dialog.appendChild(inset);
     dialog.appendChild(close);
     dialog.appendChild(canvas);
     document.body.appendChild(dialog);
