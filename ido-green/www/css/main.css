@@ -1214,3 +1214,99 @@ footer {
     padding: 6px 13px;
   }
 }
+
+/* The nudge toward the hidden climb (setupEggHints in main.js). The element
+   is the live region and sits in the page from load, so it stays out of sight
+   until a hint is written into it. */
+.egg-hint {
+  position: fixed;
+  right: var(--spacing-md);
+  bottom: var(--spacing-md);
+  z-index: 900; /* Under the navbar's 1000, over everything else. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs) var(--spacing-sm);
+  max-width: 360px;
+  padding: 14px 44px 14px 18px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--navbar-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow-hover);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: egg-hint-in 0.35s ease-out;
+}
+
+.egg-hint:empty {
+  display: none;
+}
+
+.egg-hint-text {
+  margin: 0;
+}
+
+.egg-hint-text strong {
+  font-family: var(--font-display);
+  color: var(--accent-primary);
+  letter-spacing: 0.04em;
+}
+
+.egg-hint-action {
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.egg-hint-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.egg-hint-close:hover {
+  color: var(--text-primary);
+}
+
+.egg-hint-action:focus-visible,
+.egg-hint-close:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+@keyframes egg-hint-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .egg-hint {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .egg-hint {
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+}

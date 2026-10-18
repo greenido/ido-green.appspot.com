@@ -318,8 +318,13 @@ const EGG_WORD = '8848';
 
 function setupEasterEgg() {
   let loading = null;
+  const input = document.getElementById('project-search-input');
+  const stopHints = setupEggHints(input);
 
   function launch() {
+    stopHints();
+    try { localStorage.setItem(EGG_FOUND_KEY, '1'); } catch (e) { /* they just will not skip the hints next time */ }
+
     if (window.startEverestingEgg) {
       window.startEverestingEgg();
       return;
@@ -337,7 +342,6 @@ function setupEasterEgg() {
     loading.then(() => window.startEverestingEgg && window.startEverestingEgg());
   }
 
-  const input = document.getElementById('project-search-input');
   if (input) {
     input.addEventListener('input', () => {
       if (input.value.trim().toLowerCase() !== EGG_WORD) return;
@@ -370,4 +374,114 @@ function setupEasterEgg() {
     'font: 600 14px system-ui; color: #4fd1e0',
     'font: 13px system-ui; color: #8b95ab'
   );
+}
+
+/**
+ * Nudges toward the hidden climb for anyone who lingers.
+ *
+ * Thirty seconds on the page earns a hint that the secret exists; thirty more
+ * without finding it says where to type it. Only time with the tab in view
+ * counts - a hint that lands in a background tab is a hint nobody saw. Anyone
+ * who has found the climb before, or dismisses a hint, is left alone.
+ *
+ * Returns a function that calls the whole thing off.
+ */
+const EGG_FOUND_KEY = 'everesting-egg-found';
+// Tests shorten the wait by setting this before the page loads; nobody else does.
+const EGG_HINT_MS = window.__EGG_HINT_MS || 30000;
+
+function setupEggHints(input) {
+  const noop = () => {};
+  // The hints point at the search box, so a page without one gets none.
+  if (!input) return noop;
+  try {
+    if (localStorage.getItem(EGG_FOUND_KEY)) return noop;
+  } catch (e) { /* blocked storage - show the hints */ }
+
+  const steps = [
+    { before: 'There is a hidden climb on this page. Its secret is ', after: '.' },
+    { before: 'Still looking? Type ', after: ' into the project search box.', action: 'Take me there' }
+  ];
+
+  // A live region is only announced reliably if it already exists when its
+  // content changes, so it goes in now, empty (and hidden by :empty in CSS).
+  const toast = document.createElement('div');
+  toast.className = 'egg-hint';
+  toast.setAttribute('role', 'status');
+  document.body.appendChild(toast);
+
+  let step = 0;
+  let remaining = EGG_HINT_MS;
+  let startedAt = 0;
+  let timer = null;
+
+  function show({ before, after, action }) {
+    const text = document.createElement('p');
+    text.className = 'egg-hint-text';
+    const code = document.createElement('strong');
+    code.textContent = EGG_WORD;
+    text.append(before, code, after);
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'egg-hint-close';
+    close.setAttribute('aria-label', 'Dismiss hint');
+    close.textContent = '×';
+    close.addEventListener('click', stop);
+
+    toast.replaceChildren(text);
+    if (action) {
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.className = 'egg-hint-action';
+      go.textContent = action;
+      go.addEventListener('click', () => {
+        input.scrollIntoView({ block: 'center' });
+        input.focus({ preventScroll: true });
+      });
+      toast.append(go);
+    }
+    toast.append(close);
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'easter_egg_hint', { egg: 'everesting', step: step + 1 });
+    }
+  }
+
+  function fire() {
+    timer = null;
+    show(steps[step]);
+    step += 1;
+    remaining = EGG_HINT_MS;
+    resume();
+  }
+
+  function resume() {
+    if (timer || document.hidden || step >= steps.length) return;
+    startedAt = performance.now();
+    timer = setTimeout(fire, remaining);
+  }
+
+  function pause() {
+    if (!timer) return;
+    clearTimeout(timer);
+    timer = null;
+    remaining -= performance.now() - startedAt;
+  }
+
+  function onVisibility() {
+    if (document.hidden) pause();
+    else resume();
+  }
+
+  function stop() {
+    pause();
+    step = steps.length;
+    document.removeEventListener('visibilitychange', onVisibility);
+    toast.replaceChildren();
+  }
+
+  document.addEventListener('visibilitychange', onVisibility);
+  resume();
+  return stop;
 }
