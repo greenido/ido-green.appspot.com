@@ -109,3 +109,74 @@ describe('the hidden climb', () => {
     expect(text).toMatch(/height of Everest/i);
   });
 });
+
+describe('the timed hints toward the climb', () => {
+  const HINT_MS = 800;
+  let tab;
+
+  // A page of its own: the shortened timer must not leak into the suite above,
+  // and that suite's launches leave the "found it" flag in localStorage.
+  async function visit({ foundBefore = false } = {}) {
+    tab = await browser.newPage();
+    await tab.evaluateOnNewDocument((ms, found) => {
+      window.__EGG_HINT_MS = ms;
+      if (found) localStorage.setItem('everesting-egg-found', '1');
+      else localStorage.removeItem('everesting-egg-found');
+    }, HINT_MS, foundBefore);
+    // Not networkidle0: its half-second quiet window would let the first hint
+    // come and go before the test got to look at it.
+    await tab.goto(BASE, { waitUntil: 'domcontentloaded' });
+  }
+
+  const hintText = () => tab.$eval('.egg-hint', el => el.textContent);
+
+  afterEach(async () => {
+    if (tab) await tab.close();
+    tab = null;
+  });
+
+  it('names the secret, then says where to type it', async () => {
+    await visit();
+    await tab.waitForFunction(() => /8848/.test(document.querySelector('.egg-hint').textContent));
+    expect(await hintText()).not.toMatch(/search box/i);
+
+    await tab.waitForFunction(() => /search box/i.test(document.querySelector('.egg-hint').textContent));
+    expect(await hintText()).toMatch(/8848/);
+  });
+
+  it('says nothing to someone who found the climb before', async () => {
+    await visit({ foundBefore: true });
+    await new Promise(r => setTimeout(r, HINT_MS * 3));
+    expect(await tab.$('.egg-hint')).toBeNull();
+  });
+
+  it('takes the visitor to the search box', async () => {
+    await visit();
+    await tab.waitForSelector('.egg-hint-action');
+    await tab.click('.egg-hint-action');
+    const focused = await tab.evaluate(() => document.activeElement.id);
+    expect(focused).toBe('project-search-input');
+
+    // The page scrolls smoothly, so wait for it to land rather than sample once.
+    await tab.waitForFunction(() => {
+      const box = document.getElementById('project-search-input').getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= innerHeight;
+    }, { timeout: 3000 });
+  });
+
+  it('stays quiet once dismissed', async () => {
+    await visit();
+    await tab.waitForSelector('.egg-hint-close');
+    await tab.click('.egg-hint-close');
+    await new Promise(r => setTimeout(r, HINT_MS * 3));
+    expect(await hintText()).toBe('');
+  });
+
+  it('clears away when the climb is found', async () => {
+    await visit();
+    await tab.waitForSelector('.egg-hint-text');
+    await tab.type('#project-search-input', '8848');
+    await tab.waitForSelector('#everesting-egg[open]', { timeout: 5000 });
+    expect(await hintText()).toBe('');
+  });
+});
