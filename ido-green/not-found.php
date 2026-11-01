@@ -9,6 +9,12 @@
 http_response_code(404);
 header('Content-Type: text/html; charset=utf-8');
 
+// http_headers in app.yaml does not apply to script handlers, so set them here.
+header('Strict-Transport-Security: max-age=31536000');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: frame-ancestors 'self'");
+
 $page = __DIR__ . '/www/404.html';
 if (is_readable($page)) {
     readfile($page);

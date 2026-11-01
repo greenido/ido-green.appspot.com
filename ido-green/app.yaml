@@ -13,43 +13,74 @@ default_expiration: 7d
 # it until the entry expires. Vary is set on the text handlers below for that
 # reason; images and fonts are already compressed, so splitting their cache
 # would cost hit rate for nothing.
+#
+# Every handler is HTTPS-only (secure: always redirects http:// to https://).
+# http_headers is per-handler and does not apply to script handlers, so the
+# security headers are repeated on each static handler and set again with
+# header() in not-found.php. tests/app-yaml.test.js checks all of them.
 handlers:
 - url: /
   static_files: www/index.html
   upload: www/index.html
   expiration: 10m
+  secure: always
   http_headers:
     Vary: Accept-Encoding
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # HTML is revalidated often so content edits go live quickly.
 - url: /(.*\.html)$
   static_files: www/\1
   upload: www/(.*\.html)$
   expiration: 10m
+  secure: always
   http_headers:
     Vary: Accept-Encoding
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # Crawler and PWA metadata changes should propagate quickly too.
 - url: /(robots\.txt|sitemap\.xml|manifest\.json)$
   static_files: www/\1
   upload: www/(robots\.txt|sitemap\.xml|manifest\.json)$
   expiration: 1h
+  secure: always
   http_headers:
     Vary: Accept-Encoding
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # Images and fonts are only replaced by a deploy, so cache them hard.
 - url: /(.*\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot))$
   static_files: www/\1
   upload: www/(.*\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot))$
   expiration: 365d
+  secure: always
+  http_headers:
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # CSS/JS filenames are not content-hashed, so keep these shorter than the images.
 - url: /(css|js)/(.*)
   static_files: www/\1/\2
   upload: www/(css|js)/(.*)
   expiration: 7d
+  secure: always
   http_headers:
     Vary: Accept-Encoding
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # Remaining real files (LICENSE, .json, .md, legacy assets). This REQUIRES a
 # file extension so that extensionless URLs fall through to the PHP handler
@@ -59,11 +90,17 @@ handlers:
 - url: /(.*\.[A-Za-z0-9]+)$
   static_files: www/\1
   upload: www/(.*\.[A-Za-z0-9]+)$
+  secure: always
   http_headers:
     Vary: Accept-Encoding
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Content-Security-Policy: frame-ancestors 'self'
 
 # Anything that matched no static file falls through to PHP, which serves
 # www/404.html with a real 404 status. error_handlers is NOT used here: it does
 # not fire for URLs that match no handler.
 - url: /.*
   script: auto
+  secure: always
