@@ -50,7 +50,7 @@
 - 🛣️ [RoadShow](https://ido-green.appspot.com/RoadShow.html)
 - 🛣️ [RoadShow R](https://ido-green.appspot.com/RoadShow_r.html)
 - 🛣️ [O RoadShow 1](https://ido-green.appspot.com/O_RoadShow-1.html)
-- 🧪 [Main Page Variant](https://ido-green.appspot.com/main.html)
+- 🧪 [Old Home Page](https://ido-green.appspot.com/old-home-page.html)
 - 🗂️ [Legacy Homepage Snapshot](https://ido-green.appspot.com/index_2015_11_7_o.html)
 - 📚 [Wikipedia Test](https://ido-green.appspot.com/wikipidia-test.html)
 - 🧰 [Service Worker Testing](https://ido-green.appspot.com/ServiceWorkerTesting/basic1.html)
