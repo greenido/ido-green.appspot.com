@@ -33,10 +33,8 @@
 - 📬 [Contact Page](https://ido-green.appspot.com/contact.html)
 - 🚀 [Startups Page](https://ido-green.appspot.com/startups.html)
 - 🕒 [Clock Demo](https://ido-green.appspot.com/clock.html)
-- 🎙️ [Podcast 4 Developers](https://ido-green.appspot.com/podcast4developers/index.html)
 - ⏱️ [HTML5 Time Tracker](https://ido-green.appspot.com/html5timetracker/index.html)
 - 💪 [Pull-Ups Game](https://ido-green.appspot.com/pull-ups/pull-ups-game.html)
-- 🖼️ [Flickr Demo](https://ido-green.appspot.com/flickr/ido-flickr.html)
 - ☁️ [Cloud Endpoints Web Blog Post](https://ido-green.appspot.com/CloudEndpoints/CloudEndpointsWebBlogPost.html)
 
 ## Demos And Experiments
@@ -46,7 +44,6 @@
 - 📹 [WebRTC Hello World](https://ido-green.appspot.com/webRTC-helloWorld.html)
 - 🎥 [getUserMedia Hello World](https://ido-green.appspot.com/getUserMedia-hello-world.html)
 - 🗄️ [IndexedDB Demo](https://ido-green.appspot.com/indexDB-demo3.html)
-- 🔌 [WebSocket + IndexedDB Demo](https://ido-green.appspot.com/web-socket-indexedDB.html)
 
 ## Old Projects
 
