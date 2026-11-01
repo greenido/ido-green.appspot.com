@@ -29,14 +29,11 @@
 ## Web Projects From Google Days
 
 - 🌐 [Main Site](https://ido-green.appspot.com/index.html)
-- 🤖 [Bots Page](https://ido-green.appspot.com/bots.html)
 - 📬 [Contact Page](https://ido-green.appspot.com/contact.html)
 - 🚀 [Startups Page](https://ido-green.appspot.com/startups.html)
 - 🕒 [Clock Demo](https://ido-green.appspot.com/clock.html)
-- 🎙️ [Podcast 4 Developers](https://ido-green.appspot.com/podcast4developers/index.html)
 - ⏱️ [HTML5 Time Tracker](https://ido-green.appspot.com/html5timetracker/index.html)
 - 💪 [Pull-Ups Game](https://ido-green.appspot.com/pull-ups/pull-ups-game.html)
-- 🖼️ [Flickr Demo](https://ido-green.appspot.com/flickr/ido-flickr.html)
 - ☁️ [Cloud Endpoints Web Blog Post](https://ido-green.appspot.com/CloudEndpoints/CloudEndpointsWebBlogPost.html)
 
 ## Demos And Experiments
@@ -45,15 +42,13 @@
 - 🔢 [Web Worker High Prime Demo](https://ido-green.appspot.com/examples/webWorkers/highPrime2.html)
 - 📹 [WebRTC Hello World](https://ido-green.appspot.com/webRTC-helloWorld.html)
 - 🎥 [getUserMedia Hello World](https://ido-green.appspot.com/getUserMedia-hello-world.html)
-- 🗄️ [IndexedDB Demo](https://ido-green.appspot.com/indexDB-demo3.html)
-- 🔌 [WebSocket + IndexedDB Demo](https://ido-green.appspot.com/web-socket-indexedDB.html)
 
 ## Old Projects
 
 - 🛣️ [RoadShow](https://ido-green.appspot.com/RoadShow.html)
 - 🛣️ [RoadShow R](https://ido-green.appspot.com/RoadShow_r.html)
 - 🛣️ [O RoadShow 1](https://ido-green.appspot.com/O_RoadShow-1.html)
-- 🧪 [Main Page Variant](https://ido-green.appspot.com/main.html)
+- 🧪 [Old Home Page](https://ido-green.appspot.com/old-home-page.html)
 - 🗂️ [Legacy Homepage Snapshot](https://ido-green.appspot.com/index_2015_11_7_o.html)
 - 📚 [Wikipedia Test](https://ido-green.appspot.com/wikipidia-test.html)
 - 🧰 [Service Worker Testing](https://ido-green.appspot.com/ServiceWorkerTesting/basic1.html)

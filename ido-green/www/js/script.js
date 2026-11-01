@@ -5,7 +5,6 @@
 */
 
 $(document).ready(function() {
-  $("#chromenews").hide();
   $("#more-head").hide();
   // shows the slickbox on clicking the noted link  
   $('#more-head-but').click(function() {
@@ -20,12 +19,6 @@ $(document).ready(function() {
     return false;
   });
  
-  $('#myblog-but').click(function() {
-    $('#chromenews').show('slow');
-    $('#myblog-but').hide('slow');
-    return false;
-  });
-  
   // do more/less on slides column
   $("#more-pre").hide();
   $('#less-pre-but').hide();
@@ -46,17 +39,6 @@ $(document).ready(function() {
    });  
 
 
-   // show the summary of news from chrome/chromeOS/html5
-  $('#myblog').rssfeed('http://greenido.wordpress.com/feed/',
-  {
-    limit : 3
-  });
-  // a bunch of RSS feeds that coming from y! pipes (+caching)
-  $('#chromenews').rssfeed(
-    'http://pipes.yahoo.com/pipes/pipe.run?_id=b1503e8154a95936d28a1d5175017426&_render=rss',
-    {
-      limit : 10
-    });
     
     
     $(".tips").tipTip();
