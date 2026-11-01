@@ -104,4 +104,36 @@ describe('served assets', () => {
       .filter(f => f !== 'manifest.json');
     expect(leaked).toEqual([]);
   });
+
+  it('loads no script, stylesheet, image or iframe over plain http', () => {
+    // Browsers block these on an HTTPS page, so a dependency disappears while
+    // the page still answers 200. That is how the podcast player and the time
+    // tracker went dead with jQuery undefined.
+    const PATTERNS = [
+      /<(?:script|link|img|iframe)\b[^>]*?\b(?:src|href)\s*=\s*["']?(http:\/\/[^\s"'>]+)/gi,
+      /url\(\s*["']?(http:\/\/[^\s"')]+)/gi,
+      /@import\s+["'](http:\/\/[^\s"']+)/gi,
+      /\.src\s*=\s*["'](http:\/\/[^"']*)/gi // scripts injected at runtime
+    ];
+    const offenders = [];
+
+    [...pages, ...styles].forEach(file => {
+      const src = fs.readFileSync(file, 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+      PATTERNS.forEach(pattern => {
+        for (const m of src.matchAll(pattern)) offenders.push(`${rel(file)} -> ${m[1]}`);
+      });
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('commits no Google API keys', () => {
+    // Everything under www/ is public, and a key removed later stays in git
+    // history. Names the file only, so a failure cannot print a key into CI logs.
+    const KEY = /AIza[0-9A-Za-z_-]{35}/;
+    const BINARY = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp3|mp4|pdf)$/i;
+    const offenders = walk(WWW, /./)
+      .filter(f => !BINARY.test(f) && KEY.test(fs.readFileSync(f, 'utf8')));
+    expect(offenders.map(rel)).toEqual([]);
+  });
 });
