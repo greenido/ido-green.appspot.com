@@ -28,31 +28,17 @@ python -m SimpleHTTPServer 8000
 # Access at: http://localhost:8000/pull-ups-game.html
 ```
 
-### Option 2: Node.js Express Server
-```bash
-# Navigate to the www directory
-cd /Applications/MAMP/htdocs/ido-green.appspot.com/ido-green/www
-
-# Install express (first time only)
-npm install express
-
-# Run the server
-node serve-static.js
-
-# Access at: http://localhost:3000
-```
-
-### Option 3: Live Server (VS Code Extension)
+### Option 2: Live Server (VS Code Extension)
 1. Install "Live Server" extension in VS Code
 2. Right-click on `pull-ups-game.html`
 3. Select "Open with Live Server"
 
-### Option 4: Using MAMP (Current Setup)
+### Option 3: Using MAMP (Current Setup)
 Since you're already using MAMP:
 1. Ensure MAMP is running
 2. Access: `http://localhost/ido-green.appspot.com/ido-green/www/pull-ups-game.html`
 
-### Option 5: Netlify/Vercel Deployment
+### Option 4: Netlify/Vercel Deployment
 1. **Netlify**: Drag and drop the `pull-ups-game.html` file to https://app.netlify.com/drop
 2. **Vercel**: Use `vercel --prod` in the directory
 3. **GitHub Pages**: Push to a GitHub repo and enable Pages
