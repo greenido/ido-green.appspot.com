@@ -7,6 +7,13 @@ const ROOT = path.join(__dirname, '..');
 
 const config = YAML.load(fs.readFileSync(APP_YAML, 'utf8'));
 
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "frame-ancestors 'self'"
+};
+
 /**
  * App Engine tries each handler in order and uses the FIRST whose url pattern
  * matches. A static handler never falls through: if its pattern matches but the
@@ -73,6 +80,34 @@ describe('app.yaml routing', () => {
     compressible.forEach(h => {
       expect(h.http_headers).toBeDefined();
       expect(h.http_headers.Vary).toBe('Accept-Encoding');
+    });
+  });
+
+  it('forces HTTPS on every handler', () => {
+    config.handlers.forEach(h => {
+      expect({ url: h.url, secure: h.secure }).toEqual({ url: h.url, secure: 'always' });
+    });
+  });
+
+  it('sets the security headers on every static handler', () => {
+    const staticHandlers = config.handlers.filter(h => h.static_files);
+
+    expect(staticHandlers.length).toBeGreaterThan(0);
+    staticHandlers.forEach(h => {
+      expect({ url: h.url, headers: h.http_headers }).toMatchObject({
+        url: h.url,
+        headers: SECURITY_HEADERS
+      });
+    });
+  });
+
+  it('sets the security headers in the PHP front controller', () => {
+    // http_headers does not apply to script handlers, so PHP sets its own.
+    const source = fs.readFileSync(path.join(ROOT, 'not-found.php'), 'utf8');
+    const sent = [...source.matchAll(/^\s*header\((['"])(.*)\1\);/gm)].map(m => m[2]);
+
+    Object.entries(SECURITY_HEADERS).forEach(([name, value]) => {
+      expect(sent).toContain(`${name}: ${value}`);
     });
   });
 
