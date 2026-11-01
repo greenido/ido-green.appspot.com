@@ -29,7 +29,6 @@
 ## Web Projects From Google Days
 
 - 🌐 [Main Site](https://ido-green.appspot.com/index.html)
-- 🤖 [Bots Page](https://ido-green.appspot.com/bots.html)
 - 📬 [Contact Page](https://ido-green.appspot.com/contact.html)
 - 🚀 [Startups Page](https://ido-green.appspot.com/startups.html)
 - 🕒 [Clock Demo](https://ido-green.appspot.com/clock.html)
@@ -43,7 +42,6 @@
 - 🔢 [Web Worker High Prime Demo](https://ido-green.appspot.com/examples/webWorkers/highPrime2.html)
 - 📹 [WebRTC Hello World](https://ido-green.appspot.com/webRTC-helloWorld.html)
 - 🎥 [getUserMedia Hello World](https://ido-green.appspot.com/getUserMedia-hello-world.html)
-- 🗄️ [IndexedDB Demo](https://ido-green.appspot.com/indexDB-demo3.html)
 
 ## Old Projects
 
