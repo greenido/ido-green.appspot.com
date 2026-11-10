@@ -147,7 +147,8 @@ $(document).ready(function() {
 
   // do some magic when form is submitted
   $("#logActivity").submit(function() {
-    var task = $("#what").val();
+    // Escape it: the task is inserted into the list as HTML below.
+    var task = $("<div>").text($("#what").val()).html();
     var d = new Date();
     var hour = ("0" + d.getHours()).slice(-2);
     var min = ("0" + d.getMinutes()).slice(-2);
