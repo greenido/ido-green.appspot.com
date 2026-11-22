@@ -1,0 +1,42 @@
+name: Refresh now.json
+
+# Keeps the homepage "Right now" strip current. The page reads now.json from
+# raw.githubusercontent.com, so the commit below is live without a deploy.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-now
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+
+      - name: Fetch latest public GitHub activity
+        run: node ido-green/tools/update-now.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit if it changed
+        run: |
+          if git diff --quiet -- ido-green/www/data/now.json; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ido-green/www/data/now.json
+          git commit -m "Refresh now.json [skip ci]"
+          git push

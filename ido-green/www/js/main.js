@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupScrollSpy();
   loadLatestPosts();
   setupProjectFilter();
+  setupSurprise();
+  setupPeek();
+  setupLiveWidgets();
+  setupNowStrip();
   loadRepoStats();
   setupEasterEgg();
 });
@@ -266,6 +270,308 @@ function setupProjectFilter() {
   });
 
   controls.hidden = false;
+}
+
+/**
+ * "Surprise me": jumps to a random project and makes it glow for a moment.
+ *
+ * Filters are reset first so the pick can land anywhere, and the same card is
+ * never picked twice in a row. The result line (a live region) names the pick,
+ * so screen reader users get the surprise too.
+ */
+function setupSurprise() {
+  const btn = document.getElementById('surprise-btn');
+  const input = document.getElementById('project-search-input');
+  const count = document.getElementById('project-result-count');
+  const cards = [...document.querySelectorAll('.project-card')];
+  if (!btn || !cards.length) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let last = null;
+  let glowTimer = null;
+
+  btn.addEventListener('click', () => {
+    if (input && input.value) {
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    const all = document.querySelector('.filter-chip[data-filter="all"]');
+    if (all && !all.classList.contains('active')) all.click();
+
+    const pool = cards.filter(c => c !== last);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    last = pick;
+
+    cards.forEach(c => c.classList.remove('is-surprise'));
+    // Restart the animation even if the class was only just removed.
+    void pick.offsetWidth;
+    pick.classList.add('is-surprise');
+    clearTimeout(glowTimer);
+    glowTimer = setTimeout(() => pick.classList.remove('is-surprise'), 2600);
+
+    pick.scrollIntoView({ block: 'center', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    const link = pick.querySelector('.project-card-link');
+    if (link) link.focus({ preventScroll: true });
+
+    const title = pick.querySelector('.project-card-title');
+    if (count && title) count.textContent = `🎲 How about ${title.textContent}?`;
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'surprise_me', { project: pick.id });
+    }
+  });
+}
+
+/**
+ * "Peek": opens an app in a modal iframe so it can be tried without leaving.
+ *
+ * The buttons are rendered hidden (see tools/build-projects.js) and only shown
+ * here, and only for apps that allow framing. The dialog is built on first use
+ * and its iframe is blanked on close so a backgrounded app stops running.
+ */
+function setupPeek() {
+  const buttons = [...document.querySelectorAll('.project-peek')];
+  if (!buttons.length || typeof HTMLDialogElement !== 'function') return;
+
+  let dialog = null;
+  let frame = null;
+  let heading = null;
+  let external = null;
+
+  function build() {
+    dialog = document.createElement('dialog');
+    dialog.className = 'peek-dialog';
+    dialog.id = 'peek-dialog';
+    dialog.setAttribute('aria-labelledby', 'peek-title');
+
+    const bar = document.createElement('div');
+    bar.className = 'peek-bar';
+
+    heading = document.createElement('h2');
+    heading.className = 'peek-title';
+    heading.id = 'peek-title';
+
+    external = document.createElement('a');
+    external.className = 'peek-open';
+    external.target = '_blank';
+    external.rel = 'noopener';
+    external.textContent = 'Open in new tab ↗';
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'peek-close';
+    close.setAttribute('aria-label', 'Close preview');
+    close.textContent = '×';
+    close.addEventListener('click', () => dialog.close());
+
+    frame = document.createElement('iframe');
+    frame.className = 'peek-frame';
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+    frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    frame.setAttribute('allow', 'geolocation');
+
+    bar.append(heading, external, close);
+    dialog.append(bar, frame);
+    document.body.appendChild(dialog);
+
+    // A click on the backdrop lands on the dialog element itself.
+    dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => {
+      frame.src = 'about:blank';
+      document.body.classList.remove('peek-open-body');
+    });
+  }
+
+  function open(url, title) {
+    if (!dialog) build();
+    heading.textContent = title;
+    frame.title = `${title} preview`;
+    external.href = url;
+    frame.src = url;
+    document.body.classList.add('peek-open-body');
+    dialog.showModal();
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'peek', { project: title });
+    }
+  }
+
+  buttons.forEach(btn => {
+    btn.hidden = false;
+    btn.addEventListener('click', () => open(btn.dataset.peekUrl, btn.dataset.peekTitle));
+  });
+}
+
+/**
+ * Live data on the project cards: I-80 chain controls on Road Conditions and
+ * the Palisades Tahoe snow forecast on PowderCast.
+ *
+ * Each source is only fetched once its card scrolls near the viewport - the
+ * Caltrans feed is ~200 KB, which a visitor who never scrolls should not pay.
+ * Any failure leaves the slot hidden; the card reads exactly as before.
+ */
+const LIVE_SOURCES = {
+  i80: {
+    url: 'https://cwwp2.dot.ca.gov/data/d3/cc/ccStatusD03.json',
+    render: renderChainControls
+  },
+  snow: {
+    // Palisades Tahoe. Inches, since the card is about a California resort.
+    url: 'https://api.open-meteo.com/v1/forecast?latitude=39.1969&longitude=-120.2358'
+      + '&daily=snowfall_sum&precipitation_unit=inch&timezone=America%2FLos_Angeles&forecast_days=3',
+    render: renderSnowfall
+  }
+};
+
+// Caltrans chain control levels, mildest first. Anything unknown sorts as R-0.
+const CHAIN_LEVELS = ['R-0', 'R-1', 'R-2', 'R-3'];
+
+function renderChainControls(data) {
+  const entries = ((data && data.data) || [])
+    .map(d => d.cc)
+    .filter(cc => cc && cc.location && cc.location.route === 'I-80' && cc.inService === 'true');
+  if (!entries.length) return null;
+
+  let worst = entries[0];
+  entries.forEach(cc => {
+    if (CHAIN_LEVELS.indexOf(cc.statusData.status) > CHAIN_LEVELS.indexOf(worst.statusData.status)) worst = cc;
+  });
+
+  const level = worst.statusData.status;
+  if (CHAIN_LEVELS.indexOf(level) <= 0) {
+    return { tone: 'ok', text: '🟢 Live: no chain controls on I-80 right now' };
+  }
+  return {
+    tone: 'warn',
+    text: `🟠 Live: ${level} chain controls on I-80 near ${worst.location.locationName}`
+  };
+}
+
+function renderSnowfall(data) {
+  const days = data && data.daily && data.daily.snowfall_sum;
+  if (!Array.isArray(days) || !days.length) return null;
+  const total = days.reduce((sum, n) => sum + (Number(n) || 0), 0);
+  if (total < 0.1) {
+    return { tone: 'ok', text: '☀️ Live: no new snow at Palisades Tahoe in the next 3 days' };
+  }
+  const today = Number(days[0]) || 0;
+  const lead = today >= 0.1 ? `${today.toFixed(1)}" today, ` : '';
+  return {
+    tone: 'snow',
+    text: `❄️ Live: ${lead}${total.toFixed(1)}" over 3 days at Palisades Tahoe`
+  };
+}
+
+function setupLiveWidgets() {
+  const slots = [...document.querySelectorAll('.project-live[data-live]')]
+    .filter(el => LIVE_SOURCES[el.dataset.live]);
+  if (!slots.length) return;
+
+  function load(slot) {
+    const source = LIVE_SOURCES[slot.dataset.live];
+    fetch(source.url)
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
+      .then(data => {
+        const out = source.render(data);
+        if (!out) return;
+        slot.textContent = out.text;
+        slot.dataset.tone = out.tone;
+        slot.hidden = false;
+      })
+      .catch(() => { /* No live line - the card is still complete without it. */ });
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    slots.forEach(load);
+    return;
+  }
+  // Watch the card, not the slot: the slot is display:none until it has data,
+  // and an element with no box never intersects anything.
+  const slotFor = new Map(slots.map(slot => [slot.closest('.project-card') || slot, slot]));
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      load(slotFor.get(entry.target));
+    });
+  }, { rootMargin: '300px 0px' });
+  slotFor.forEach((slot, target) => observer.observe(target));
+}
+
+/**
+ * The "Right now" strip in the hero.
+ *
+ * Reads now.json from GitHub first: a scheduled workflow commits fresh GitHub
+ * activity there (tools/update-now.js), and raw.githubusercontent.com serves it
+ * without waiting for a deploy. The deployed copy is the fallback. If neither
+ * loads, the strip stays hidden.
+ */
+const NOW_SOURCES = [
+  'https://raw.githubusercontent.com/greenido/ido-green.appspot.com/master/ido-green/www/data/now.json',
+  '/data/now.json'
+];
+
+function timeAgo(iso) {
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return '';
+  const seconds = Math.round((then - Date.now()) / 1000);
+  const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit);
+  }
+  return 'just now';
+}
+
+function setupNowStrip() {
+  const strip = document.getElementById('now-strip');
+  const list = document.getElementById('now-list');
+  if (!strip || !list) return;
+
+  const tryFetch = urls => {
+    if (!urls.length) return Promise.reject(new Error('no source'));
+    return fetch(urls[0], { cache: 'no-cache' })
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
+      .catch(() => tryFetch(urls.slice(1)));
+  };
+
+  tryFetch(NOW_SOURCES)
+    .then(now => {
+      const items = [];
+      const add = (icon, label, value, href) => {
+        const li = document.createElement('li');
+        li.className = 'now-item';
+        const key = document.createElement('span');
+        key.className = 'now-key';
+        key.textContent = `${icon} ${label}`;
+        li.append(key, ' ');
+        if (href) {
+          const a = document.createElement('a');
+          a.href = href;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = value;
+          li.append(a);
+        } else {
+          li.append(value);
+        }
+        items.push(li);
+        return li;
+      };
+
+      if (now.building) add('🛠️', 'Building', now.building);
+      if (now.reading) add('📚', 'Reading', now.reading);
+      const gh = now.github;
+      if (gh && gh.repo && /^[\w.-]+\/[\w.-]+$/.test(gh.repo)) {
+        const li = add('⌨️', gh.verb || 'Pushed to', gh.repo.split('/')[1], `https://github.com/${gh.repo}`);
+        const when = timeAgo(gh.at);
+        if (when) li.append(` · ${when}`);
+      }
+      if (!items.length) return;
+      list.replaceChildren(...items);
+      strip.hidden = false;
+    })
+    .catch(() => { /* Nothing to show - the hero is complete without it. */ });
 }
 
 /**

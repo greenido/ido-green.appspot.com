@@ -35,7 +35,8 @@
         "weather",
         "cycling",
         "maps"
-      ]
+      ],
+      "peek": true
     },
     {
       "id": "water2route",
@@ -77,7 +78,8 @@
         "strava",
         "cycling",
         "api"
-      ]
+      ],
+      "peek": true
     },
     {
       "id": "hwy80",
@@ -91,7 +93,9 @@
         "weather",
         "driving",
         "maps"
-      ]
+      ],
+      "peek": true,
+      "live": "i80"
     },
     {
       "id": "powdercast",
@@ -106,7 +110,9 @@
         "weather",
         "skiing",
         "forecast"
-      ]
+      ],
+      "peek": true,
+      "live": "snow"
     },
     {
       "id": "pullups",
@@ -133,7 +139,8 @@
       "tags": [
         "fitness",
         "training"
-      ]
+      ],
+      "peek": true
     },
     {
       "id": "endura",
@@ -161,7 +168,8 @@
       "tags": [
         "running",
         "calculator"
-      ]
+      ],
+      "peek": true
     },
     {
       "id": "season",
@@ -248,7 +256,8 @@
         "security",
         "compliance",
         "news"
-      ]
+      ],
+      "peek": true
     },
     {
       "id": "wacrawl",

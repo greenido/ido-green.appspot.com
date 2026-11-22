@@ -1310,3 +1310,316 @@ footer {
     max-width: none;
   }
 }
+
+/* ==========================================================================
+   9. Live homepage bits: Right now strip, Surprise me, Peek, live card data,
+   and the "things I helped ship" list. Behaviour lives in js/main.js.
+   ========================================================================== */
+
+/* --- Right now strip (setupNowStrip) --- */
+.now-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-xs) var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding: 12px 18px;
+  max-width: 600px;
+  font-size: 0.9rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.now-strip[hidden] {
+  display: none;
+}
+
+.now-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-primary);
+}
+
+.now-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(72% 0.19 150);
+  box-shadow: 0 0 0 0 oklch(72% 0.19 150 / 0.6);
+  animation: now-pulse 2s ease-out infinite;
+}
+
+@keyframes now-pulse {
+  to { box-shadow: 0 0 0 8px oklch(72% 0.19 150 / 0); }
+}
+
+.now-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.now-item {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.now-key {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.now-item a {
+  color: var(--accent-primary);
+}
+
+/* --- Surprise me (setupSurprise) --- */
+.surprise-btn {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px dashed var(--accent-primary);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.surprise-btn:hover {
+  background: var(--accent-glow);
+  transform: rotate(-2deg);
+}
+
+.surprise-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.project-card.is-surprise {
+  animation: surprise-glow 2.6s ease-out;
+  border-color: var(--accent-primary);
+}
+
+@keyframes surprise-glow {
+  0%   { box-shadow: 0 0 0 0 var(--accent-primary); transform: scale(1); }
+  15%  { box-shadow: 0 0 0 6px var(--accent-primary); transform: scale(1.03); }
+  100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+}
+
+/* --- Peek (setupPeek) --- */
+.project-peek {
+  position: relative;
+  z-index: 1; /* Above the stretched card link, like .project-repo. */
+  margin-left: auto;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--accent-primary);
+  background: var(--accent-glow);
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.project-peek[hidden] {
+  display: none;
+}
+
+.project-peek:hover,
+.project-peek:focus-visible {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
+.project-peek:not([hidden]) + .project-repo {
+  margin-left: 8px;
+}
+
+.peek-dialog {
+  width: min(1100px, calc(100vw - 32px));
+  height: min(800px, calc(100vh - 64px));
+  padding: 0;
+  color: var(--text-primary);
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.peek-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.peek-dialog::backdrop {
+  background: rgba(8, 10, 20, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.peek-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 12px 10px 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.peek-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The site-wide h2 underline does not belong in a toolbar. */
+.peek-title::after {
+  content: none;
+}
+
+.peek-open {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  white-space: nowrap;
+}
+
+.peek-close {
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.peek-close:hover,
+.peek-close:focus-visible {
+  color: var(--text-primary);
+  background: var(--card-bg);
+  outline: none;
+}
+
+.peek-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #fff;
+}
+
+body.peek-open-body {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .peek-dialog {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+/* --- Live data on project cards (setupLiveWidgets) --- */
+.project-live {
+  margin: var(--spacing-xs) 0 0;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 10px;
+  color: var(--text-primary);
+  background: var(--accent-glow);
+}
+
+.project-live[hidden] {
+  display: none;
+}
+
+.project-live[data-tone="warn"] {
+  background: oklch(75% 0.16 60 / 0.18);
+}
+
+/* --- Things I helped ship --- */
+.shipped {
+  margin-bottom: var(--spacing-xl);
+}
+
+.shipped-title {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.shipped-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .shipped-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1000px) {
+  .shipped-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.shipped-item {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+}
+
+.shipped-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.shipped-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.shipped-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.shipped-note a {
+  color: var(--accent-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-dot,
+  .project-card.is-surprise {
+    animation: none;
+  }
+}
