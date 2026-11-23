@@ -736,6 +736,7 @@ section {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent-primary);
+  white-space: nowrap; /* Keep "Launch App" and the pills on one line each. */
 }
 
 .project-card-footer svg {
@@ -1546,13 +1547,20 @@ body.peek-open-body {
 
 /* --- Live data on project cards (setupLiveWidgets) --- */
 .project-live {
-  margin: var(--spacing-xs) 0 0;
-  padding: 6px 10px;
+  margin: 0 0 var(--spacing-sm); /* Breathing room above the Launch / Peek row. */
+  padding: 8px 12px;
   font-size: 0.82rem;
   font-weight: 500;
+  line-height: 1.45;
   border-radius: 10px;
+  border-left: 3px solid var(--accent-primary);
   color: var(--text-primary);
   background: var(--accent-glow);
+}
+
+/* With a live line under it, the description needs less trailing space. */
+.project-card-description:has(+ .project-live:not([hidden])) {
+  margin-bottom: var(--spacing-sm);
 }
 
 .project-live[hidden] {
@@ -1561,6 +1569,7 @@ body.peek-open-body {
 
 .project-live[data-tone="warn"] {
   background: oklch(75% 0.16 60 / 0.18);
+  border-left-color: oklch(70% 0.17 60);
 }
 
 /* --- Things I helped ship --- */
