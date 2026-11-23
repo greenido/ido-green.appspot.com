@@ -40,6 +40,20 @@ function renderCard(p) {
                aria-label="Source code for ${esc(p.title)}" data-repo="${esc(p.repo)}">Source</a>`
     : '';
 
+  // Peek opens the app in a modal on this page. Only set for apps whose own
+  // headers allow framing - Everesting, Water Mapper and others send
+  // X-Frame-Options / frame-ancestors and would render a blank box.
+  const peek = p.peek
+    ? `\n            <button type="button" class="project-peek" data-peek-url="${esc(p.url)}"
+                    data-peek-title="${esc(p.title)}" hidden>Peek</button>`
+    : '';
+
+  // A slot main.js fills with live data (chain controls, snowfall) once the
+  // card scrolls into view. Empty and hidden in the served HTML.
+  const live = p.live
+    ? `\n              <p class="project-live" data-live="${esc(p.live)}" hidden></p>`
+    : '';
+
   return `          <article class="glass-card project-card ${esc(p.category)}" id="project-${esc(p.id)}"
                    data-category="${esc(p.category)}" data-tags="${esc((p.tags || []).join(' '))}">
             <a class="project-card-link" href="${esc(p.url)}"${/^https?:/.test(p.url) ? ' target="_blank" rel="noopener"' : ''}>
@@ -48,10 +62,10 @@ function renderCard(p) {
                 ${ARROW}
               </span>
               <h4 class="project-card-title">${esc(p.title)}</h4>
-              <p class="project-card-description">${esc(p.description)}</p>
+              <p class="project-card-description">${esc(p.description)}</p>${live}
             </a>
             <div class="project-card-footer">
-              <span class="project-card-cta">${esc(p.cta)}</span>${repo}
+              <span class="project-card-cta">${esc(p.cta)}</span>${peek}${repo}
             </div>
           </article>`;
 }
@@ -85,6 +99,7 @@ function renderControls(categories, total) {
             <button type="button" class="filter-chip active" data-filter="all">All</button>
 ${chips}
           </div>
+          <button type="button" class="surprise-btn" id="surprise-btn">🎲 Surprise me</button>
           <p class="project-result-count" id="project-result-count" role="status" aria-live="polite"></p>
         </div>`;
 }
