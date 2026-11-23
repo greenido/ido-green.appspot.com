@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupNowStrip();
   loadRepoStats();
   setupEasterEgg();
+  setupTerminal();
 });
 
 /**
@@ -630,6 +631,7 @@ function setupEasterEgg() {
   function launch() {
     stopHints();
     try { localStorage.setItem(EGG_FOUND_KEY, '1'); } catch (e) { /* they just will not skip the hints next time */ }
+    window.siteEggs.mark('everest');
 
     if (window.startEverestingEgg) {
       window.startEverestingEgg();
@@ -647,6 +649,8 @@ function setupEasterEgg() {
     }
     loading.then(() => window.startEverestingEgg && window.startEverestingEgg());
   }
+  // The terminal's `everest` command climbs the same way.
+  window.launchEverestingEgg = launch;
 
   if (input) {
     input.addEventListener('input', () => {
@@ -676,10 +680,94 @@ function setupEasterEgg() {
   });
 
   console.log(
-    '%cThere is a climb hidden on this page.%c\nType the height of Everest in metres - in the project search, or anywhere on this page.',
+    '%cThere is a climb hidden on this page.%c\nType the height of Everest in metres - in the project search, or anywhere on this page.\nAnd if you live in a shell: press ` (backtick).',
     'font: 600 14px system-ui; color: #4fd1e0',
     'font: 13px system-ui; color: #8b95ab'
   );
+}
+
+/**
+ * Which secrets this visitor has found, kept in localStorage.
+ *
+ * Shared by the Everest climb and the terminal (js/terminal.js), which shows
+ * the count and the hints. The old everesting-egg-found flag predates this
+ * list, so anyone who climbed before still gets the credit.
+ */
+const EGGS = [
+  { id: 'everest', name: 'The hidden climb', hint: 'A number you would see on a summit sign.' },
+  { id: 'terminal', name: 'The terminal', hint: 'You are already here.' },
+  { id: 'sudo', name: 'Admin rights', hint: 'Ask for more power than you have.' },
+  { id: 'rm', name: 'Delete everything', hint: 'The command every shell warns you about.' }
+];
+const EGGS_KEY = 'eggs-found';
+
+window.siteEggs = {
+  all: EGGS,
+  total: EGGS.length,
+  found() {
+    let ids = [];
+    try {
+      ids = JSON.parse(localStorage.getItem(EGGS_KEY)) || [];
+      if (localStorage.getItem(EGG_FOUND_KEY) && !ids.includes('everest')) ids.push('everest');
+    } catch (e) { /* blocked storage counts as a fresh visitor */ }
+    return EGGS.map(e => e.id).filter(id => ids.includes(id));
+  },
+  /** Records a find. Returns true only the first time. */
+  mark(id) {
+    const ids = this.found();
+    if (ids.includes(id) || !EGGS.some(e => e.id === id)) return false;
+    ids.push(id);
+    try { localStorage.setItem(EGGS_KEY, JSON.stringify(ids)); } catch (e) { /* it still counts for this visit */ }
+    if (typeof window.gtag === 'function') window.gtag('event', 'easter_egg_found', { egg: id });
+    return true;
+  }
+};
+
+/**
+ * The hidden terminal: backtick (or ~) anywhere on the page, or "terminal" in
+ * the project search on a phone. js/terminal.js is fetched on first use only.
+ */
+const TERMINAL_WORD = 'terminal';
+
+function setupTerminal() {
+  let loading = null;
+
+  function open() {
+    if (window.openSiteTerminal) {
+      window.openSiteTerminal();
+      return;
+    }
+    if (!loading) {
+      loading = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/js/terminal.js?v=2ee99e40';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      }).catch(() => { loading = null; });
+    }
+    loading.then(() => window.openSiteTerminal && window.openSiteTerminal());
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== '`' && e.key !== '~') return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    if (document.querySelector('dialog[open]')) return; // the terminal handles its own key
+    e.preventDefault();
+    open();
+  });
+
+  const input = document.getElementById('project-search-input');
+  if (input) {
+    input.addEventListener('input', () => {
+      if (input.value.trim().toLowerCase() !== TERMINAL_WORD) return;
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      open();
+    });
+  }
 }
 
 /**

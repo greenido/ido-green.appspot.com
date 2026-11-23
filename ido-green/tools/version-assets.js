@@ -36,20 +36,20 @@ function walk(dir, match, out = []) {
 
 let stamped = 0;
 
-// Pass 1: references made from inside JS. main.js fetches the easter egg by
-// URL, so that URL needs its own version - main.js's hash says nothing about
-// the file it goes on to load.
+// Pass 1: references made from inside JS. main.js fetches the easter egg and
+// the terminal by URL, so each of those URLs needs its own version - main.js's
+// hash says nothing about the files it goes on to load.
 const mainJs = path.join(WWW, 'js', 'main.js');
 if (fs.existsSync(mainJs)) {
-  const egg = path.join(WWW, 'js', 'easter-egg.js');
-  if (fs.existsSync(egg)) {
-    const src = fs.readFileSync(mainJs, 'utf8');
-    const next = src.replace(
-      /(["'])\/js\/easter-egg\.js(?:\?v=[a-f0-9]+)?\1/g,
-      `$1/js/easter-egg.js?v=${hash(egg)}$1`
-    );
-    if (next !== src) { fs.writeFileSync(mainJs, next); stamped++; }
-  }
+  const src = fs.readFileSync(mainJs, 'utf8');
+  const next = src.replace(
+    /(["'])\/js\/([A-Za-z0-9_-]+\.js)(?:\?v=[a-f0-9]+)?\1/g,
+    (whole, quote, name) => {
+      const target = path.join(WWW, 'js', name);
+      return fs.existsSync(target) ? `${quote}/js/${name}?v=${hash(target)}${quote}` : whole;
+    }
+  );
+  if (next !== src) { fs.writeFileSync(mainJs, next); stamped++; }
 }
 
 // Pass 2: the HTML. Done second so main.js is hashed after pass 1 changed it.
