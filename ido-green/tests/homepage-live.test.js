@@ -37,11 +37,14 @@ async function openPage({ now = NOW_FIXTURE, rawFails = false, chains = 'R-0' } 
       headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify(body)
     });
-    if (url.startsWith('https://raw.githubusercontent.com/')) {
+    // Route on the exact hostname: a substring test would also match a URL
+    // that merely mentions the host in its path or query.
+    const host = new URL(url).hostname;
+    if (host === 'raw.githubusercontent.com') {
       return rawFails ? req.respond({ status: 404, headers: { 'Access-Control-Allow-Origin': '*' }, body: '' }) : json(now);
     }
-    if (url.includes('cwwp2.dot.ca.gov')) return json(caltrans(chains));
-    if (url.includes('api.open-meteo.com')) return json(SNOW_FIXTURE);
+    if (host === 'cwwp2.dot.ca.gov') return json(caltrans(chains));
+    if (host === 'api.open-meteo.com') return json(SNOW_FIXTURE);
     if (url.startsWith(BASE)) return req.continue();
     // Fonts, GitHub API, WordPress: not under test here.
     return req.abort();
